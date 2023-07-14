@@ -25,4 +25,4 @@ Each barcode represents a separate DNA extraction method. For each extraction me
 
 **Step One**: *Rebasecalling the fast5 files from the sequencing run*
 
-For each barcode/extraction method, the pass and fail fast5 files from the sequencing run after 18hrs were combined and then rebasecalled using super accuracy guppy basecaller (version 6.0.1), bash script titled 'super_accuracy_SQK_RBK004.sh'.
+For each barcode/extraction method, the pass and fail fast5 files from the sequencing run after 18hrs were combined and then rebasecalled using super accuracy guppy basecaller (version 6.0.1), bash script titled 'super_basecalling_SQK_RBK004.sh'.
