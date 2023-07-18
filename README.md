@@ -26,3 +26,8 @@ Each barcode represents a separate DNA extraction method. For each extraction me
 **Step One**: *Rebasecalling the fast5 files from the sequencing run*
 
 For each barcode/extraction method, the pass and fail fast5 files from the sequencing run after 18hrs were combined and then rebasecalled using super accuracy guppy basecaller (version 6.0.1), bash script titled 'super_basecalling_SQK_RBK004.sh'.
+
+**Step Two**: Concatenating the 'pass' fastq files for each barcode
+
+Following basecalling using super accuracy mode, each barcode's new 'pass' fastq files were concatenated into one using the script 'concat_fastq_SQK_RBK004.sh' setting the input path as the the pass directory for a specific rebasecalled barcode (e.g  /mnt/shared/scratch/kkeegan/personal/extraction_exp/Rebasecalled_trimmed_super_accuracy/barcode_1/pass/barcode01) and the output path being the same directory but with the file name specific to the barcode being concatenated (e.g /mnt/shared/scratch/kkeegan/personal/extraction_exp/Rebasecalled_trimmed_super_accuracy/barcode_1/pass/barcode01/concat_barcode1.fastq)
+
