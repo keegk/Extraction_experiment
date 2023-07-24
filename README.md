@@ -37,5 +37,6 @@ I check for any duplicated reads that may be present and I also convert this fas
 
 To convert these clean.fastq to clean.fasta, I simply use the package seqtk (conda install -c bioconda seqtk) and convert each barcodes concatenated cleaned fastq file to fasta using 'seqtk seq -a clean.fastq > cleaned_fasta.fasta'. Note the pass folder of barcode2 and barcode 5 has a directory called barcode1 which has three fastq files of total size 11KB. I did not include these fastq file in the final barcode 1 cleaned fasta file as im not 100% sure if it is barcode 1 (given that it is in the wrong barcode directory). 
 
-**Step four** BLAST each barcodes cleaned, concatenated fasta file
+**Step four**:BLAST each barcodes cleaned, concatenated fasta file
+
 Done using blast_7.sh 
