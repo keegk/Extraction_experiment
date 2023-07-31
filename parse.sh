@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --cpus-per-task=8
+#SBATCH --cpus-per-task=4
 #SBATCH --mail-user=karen.keegan@moredun.ac.uk
 #SBATCH --mail-type=END,FAIL
 
