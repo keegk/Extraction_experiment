@@ -1,0 +1,115 @@
+---
+title: "Adding extraction method column and merging blast text files"
+output: html_notebook
+---
+
+```{r}
+library(tidyverse)
+library(stringr)
+```
+
+Barcode 1
+
+```{r}
+setwd("C:/Users/keegk/OneDrive - moredungroup/Karen Keegan/Nanopore/SQKRBK004/Extraction_experiment_run_22.2.23")   
+barcode_1.txt <- read.table("barcode_1_parsed.txt", sep=",", header = TRUE)
+
+```
+
+Adding a column for extraction method
+
+```{r}
+extraction.method <- c("fast_dna")
+barcode_1.txt$extraction.method <- extraction.method
+#View(barcode_1.txt)
+```
+
+Barcode 2
+
+```{r}
+#setwd("C:/Users/keegk/OneDrive - moredungroup/Karen Keegan/Nanopore/SQKRBK004/Extraction_experiment_run_22.2.23")   
+barcode_2.txt <- read.table("barcode_2_parsed.txt", sep=",",  header = FALSE)
+colnames(barcode_2.txt) <- c("subject.sci.names","query.acc","subject.acc","percent.identity","alignment.length","mismatches","gap.opens","q.start","q.end","s.start","s.end","evalue","bit.score","subject.tax.ids")
+
+```
+
+Adding a column for extraction method
+```{r}
+extraction.method <- c("mag_max")
+barcode_2.txt$extraction.method <- extraction.method
+#View(barcode_2.txt)
+```
+
+Barcode 3
+
+```{r}
+#setwd("C:/Users/keegk/OneDrive - moredungroup/Karen Keegan/Nanopore/SQKRBK004/Extraction_experiment_run_22.2.23")   
+barcode_3.txt <- read.table("barcode_2_parsed.txt", sep=",",  header = FALSE)
+colnames(barcode_3.txt) <- c("subject.sci.names","query.acc","subject.acc","percent.identity","alignment.length","mismatches","gap.opens","q.start","q.end","s.start","s.end","evalue","bit.score","subject.tax.ids")
+
+```
+
+Adding a column for extraction method
+```{r}
+extraction.method <- c("3_peaks")
+barcode_3.txt$extraction.method <- extraction.method
+#View(barcode_3.txt)
+```
+
+
+No merging all dataframes using tidyverse bind_rows
+
+```{r}
+combined_blast <- bind_rows(barcode_1.txt, barcode_2.txt, barcode_3.txt)
+View(combined_blast)
+nrow(combined_blast) #42965
+combined_blast[1774, ]
+combined_blast[11434, ]# ok so both of these row numbers have two taxi ids assigned to them. This must be an inherent error in ncbi assignment giving the same species multiple tax ids? to correct this, maybe i use str_split to just take the first entry?
+combined_blast$subject.tax.ids<- str_extract(combined_blast$subject.tax.ids, "\\d+") # the "\\d+" is a regex (regular expression) that means: \d a shorthand character class, which matches all numbers; it is the same as [0-9] and + is plus one or more of the expression. If i had this in brackets "(\\d+))" it would return all numeric values present but without the brackets, just returns one value
+
+combined_blast[11434, ]
+```
+
+Setting up a table with taxa info for the combined
+
+```{r}
+#install.packages("taxonomizr")
+library(taxonomizr)
+prepareDatabase(getAccessions = FALSE) # name is "nameNode.sqlite"
+taxaID <- as.vector(combined_blast$subject.tax.ids)
+#print(taxaID)
+#taxa_id <- data.frame(combined_blast$subject.tax.ids)
+#taxa_id <- as.data.frame(getTaxonomy(taxaID, sqlFile = "nameNode.sqlite",  desiredTaxa = c("superkingdom", "phylum", "class", "order", "family", "genus", "species")))
+taxa<-getTaxonomy(taxaID,sqlFile = "nameNode.sqlite", sep )
+#print(taxa)
+
+```
+
+ converting row names to column using rownames_to_column:
+```{r}
+taxa <- data.frame(taxa)
+taxa1<- tibble::rownames_to_column(taxa, var = "subject.tax.ids")
+taxa1
+```
+
+We need to remove the decimal points and NA values from the column in taxa
+
+```{r}
+taxa1$subject.tax.ids <- str_extract(taxa1$subject.tax.ids, "\\d+")
+taxa1
+nrow(taxa1) #42965
+```
+
+now I can merge these two tables using the column in common, subject.tax.ids. first i need to make the column values identical by sorting both columns from each table sequentially from low to high
+```{r}
+
+combined_blast_sorted <- combined_blast[order(combined_blast$subject.tax.ids), ]
+taxa_table_sorted <- taxa1[order(taxa1$subject.tax.ids), ]
+
+```
+
+And finally merging both taxonomy table and blast table
+```{r}
+merged_with_taxa.txt <- merge(x = combined_blast, y = taxa_table_sorted, by = "subject.tax.ids")
+View(merged_with_taxa.txt)
+```
