@@ -118,6 +118,8 @@ parseBlastNT7 <- function(con, outname, pc.id.thresh = 90, eval.thresh = 1E-6,
       line <- str_replace_all(line, "\\.,\\.", ",.")
       line <- str_replace_all(line, "%", "percent")
       column.names <- strsplit(line, ",.")[[1]]
+	  write.table(column.names, file = outname, sep = ",",
+				  col.names = FALSE, row.names = FALSE)
     }
     
     # get the number of matching hits for this read, read them,
@@ -149,7 +151,7 @@ parseBlastNT7 <- function(con, outname, pc.id.thresh = 90, eval.thresh = 1E-6,
         # process them...
         if (nreads==1){
           write.table(hit.lines, file = outname, sep = ",", 
-                      row.names = FALSE)
+                      col.names = FALSE, row.names = FALSE)
         } else {
           write.table(hit.lines, file = outname, sep = ",",
                       row.names = FALSE, append = TRUE,
