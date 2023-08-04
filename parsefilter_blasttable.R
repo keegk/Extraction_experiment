@@ -1,5 +1,5 @@
 #!/usr/bin/env Rscript
-script.version <- "1.1"
+script.version <- "1.2"
 start_time <- Sys.time()
 args = commandArgs(trailingOnly=TRUE)
 
@@ -118,7 +118,7 @@ parseBlastNT7 <- function(con, outname, pc.id.thresh = 90, eval.thresh = 1E-6,
       line <- str_replace_all(line, "\\.,\\.", ",.")
       line <- str_replace_all(line, "%", "percent")
       column.names <- strsplit(line, ",.")[[1]]
-	  write.table(column.names, file = outname, sep = ",",
+	  write.table(line, file = outname, sep = ",",
 				  col.names = FALSE, row.names = FALSE)
     }
     
@@ -150,8 +150,9 @@ parseBlastNT7 <- function(con, outname, pc.id.thresh = 90, eval.thresh = 1E-6,
         # lets just try writing the fits out to the file when we
         # process them...
         if (nreads==1){
-          write.table(hit.lines, file = outname, sep = ",", 
-                      col.names = FALSE, row.names = FALSE)
+          write.table(hit.lines, file = outname, sep = ",",
+                      row.names = FALSE, append = TRUE,
+                      col.names = FALSE)
         } else {
           write.table(hit.lines, file = outname, sep = ",",
                       row.names = FALSE, append = TRUE,
