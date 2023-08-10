@@ -118,7 +118,7 @@ parseBlastNT7 <- function(con, outname, pc.id.thresh = 90, eval.thresh = 1E-6,
       line <- str_replace_all(line, "\\.,\\.", ",.")
       line <- str_replace_all(line, "%", "percent")
       column.names <- strsplit(line, ",.")[[1]]
-	  write.table(line, file = outname, sep = ",",
+	  write.table(t(data.frame(column.names)), file = outname, sep = ",",
 				  col.names = FALSE, row.names = FALSE)
     }
     
