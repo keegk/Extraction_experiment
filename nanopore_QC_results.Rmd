@@ -1,5 +1,4 @@
----
-title: "Adding extraction method column and merging blast text files"
+title: "Nanopore QC results"
 output: html_notebook
 ---
 
@@ -8,37 +7,19 @@ library(tidyverse)
 library(stringr)
 ```
 
-Barcode 1 before splitting:
-
-```{r}
-#install.packages("assertthat")
-#library(assertthat)
-#setwd("C:/Users/keegk/OneDrive - moredungroup/Karen Keegan/Nanopore/SQKRBK004/Extraction_experiment_run_22.2.23")   
-barcode_0.txt <- read.table("barcode_1_parsed.txt", sep=",", header = TRUE)
-barcode_0.txt[1774, ]
-barcode_0.txt[1775, ]
-View(barcode_0.txt)
-grep(";", barcode_0.txt$subject.sci.names) 
-```
-
-
-
-Barcode 1 after splitting:
+Barcode 1:
 
 ```{r}
  
 barcode_1.txt <- read.table("barcode_1_parsed.txt", sep=",", header = TRUE)
 
 barcode_1.1 <- barcode_1.txt %>%
-   separate_rows(subject.sci.names, subject.tax.ids, sep = ";")
+   separate_rows(subject.sci.names, subject.tax.ids, sep = ";") # added this to separate rows where subject.sci.names had more than one name of a species (and subsequently the subject.tax.ids also had two numbers present for these rows.)
+
+grep(";", barcode_1.1$subject.sci.names) # tells me if any subject.sci.names still have two per row separated by ;. Should return interger(0) if the rows have been separated properly
 
 
-barcode_1.1[1774, ]
-barcode_1.1[1775, ]
-grep(";", barcode_1.1$subject.sci.names) 
-
-
-extraction.method <- c("fast_dna")
+extraction.method <- c("Fast_dna") # these two lines add a column called extraction.method that contains the method 'fast.dna' for this dataframe
 barcode_1.1$extraction.method <- extraction.method
 
 
@@ -54,7 +35,7 @@ barcode_2.txt <- read.table("barcode_2_parsed.txt", sep=",",  header = TRUE)
 barcode_2.1 <- barcode_2.txt %>% separate_rows(subject.sci.names, subject.tax.ids, sep = ";")
 grep(";", barcode_2.1$subject.sci.names) 
 
-extraction.method <- c("mag_max")
+extraction.method <- c("Mag_max")
 barcode_2.1$extraction.method <- extraction.method
 
 
@@ -71,7 +52,7 @@ barcode_3.txt <- read.table("barcode_3_parsed.txt", sep=",",  header = TRUE)
 barcode_3.1 <- barcode_3.txt %>% separate_rows(subject.sci.names, subject.tax.ids, sep = ";")
 grep(";", barcode_3.1$subject.sci.names) 
 
-extraction.method <- c("Three_peaks")
+extraction.method <- c("3_peaks")
 barcode_3.1$extraction.method <- extraction.method
 
 
@@ -89,7 +70,7 @@ barcode_4.txt <- read.table("barcode_4_parsed.txt", sep=",",  header = TRUE)
 barcode_4.1 <- barcode_4.txt %>% separate_rows(subject.sci.names, subject.tax.ids, sep = ";")
 grep(";", barcode_4.1$subject.sci.names) 
 
-extraction.method <- c("phenol_chloroform")
+extraction.method <- c("PC")
 barcode_4.1$extraction.method <- extraction.method
 
 
@@ -105,7 +86,7 @@ barcode_5.txt <- read.table("barcode_5_parsed.txt", sep=",",  header = TRUE)
 barcode_5.1 <- barcode_5.txt %>% separate_rows(subject.sci.names, subject.tax.ids, sep = ";")
 grep(";", barcode_5.1$subject.sci.names) 
 
-extraction.method <- c("UCP_pathogen_kit")
+extraction.method <- c("UCP")
 barcode_5.1$extraction.method <- extraction.method
 
 
@@ -143,20 +124,12 @@ barcode_7.1$extraction.method <- extraction.method
 barcode_7.1$subject.tax.ids <- as.character(barcode_7.1$subject.tax.ids) # for some reason the bind_rows function below is throwing up an error that some of the subject.tax.id columns are chracters and others are integers across all the barcode text files, so setting every barcodes column to character before merging.
 
 ```
-No merging all dataframes using tidyverse bind_rows
+
+Now merging all dataframes using tidyverse bind_rows
 
 ```{r}
 combined_blast <- bind_rows(barcode_1.1, barcode_2.1, barcode_3.1,barcode_4.1,barcode_5.1,barcode_6.1,barcode_7.1)
-#View(combined_blast)
-#nrow(combined_blast) #42965
-combined_blast[1774, ]
-nrow(combined_blast)
-combined_blast_distinct<- dplyr::distinct(combined_blast, .keep_all = TRUE)
-nrow(combined_blast_distinct)
-#combined_blast[11434, ]# ok so both of these row numbers have two taxi ids assigned to them. This must be an inherent error in ncbi assignment giving the same species multiple tax ids? to correct this, maybe i use str_split to just take the first entry?
-#combined_blast$subject.tax.ids<- str_extract(combined_blast$subject.tax.ids, "\\d+") # the "\\d+" is a regex (regular expression) that means: \d a shorthand character class, which matches all numbers; it is the same as [0-9] and + is plus one or more of the expression. If i had this in brackets "(\\d+))" it would return all numeric values present but without the brackets, just returns one value
 
-#combined_blast[11434, ]
 ```
 
 Setting up a table with taxa info for the combined
@@ -166,11 +139,8 @@ Setting up a table with taxa info for the combined
 library(taxonomizr)
 prepareDatabase(getAccessions = FALSE) # name is "nameNode.sqlite"
 taxaID <- as.vector(combined_blast$subject.tax.ids)
-#print(taxaID)
-#taxa_id <- data.frame(combined_blast$subject.tax.ids)
-#taxa_id <- as.data.frame(getTaxonomy(taxaID, sqlFile = "nameNode.sqlite",  desiredTaxa = c("superkingdom", "phylum", "class", "order", "family", "genus", "species")))
-taxa<-getTaxonomy(taxaID,sqlFile = "nameNode.sqlite", sep )
-#print(taxa)
+
+taxa<-getTaxonomy(taxaID,sqlFile = "nameNode.sqlite", sep ) # Should note I always get warning messages " cannot remove file 'C:\Users\keegk\AppData\Local\Temp\RtmpoB5Zmx\file52c43a1f5e8e', reason 'Permission denied' Warning in file.remove(tmp) :" or some variation whenever I run this code 
 
 ```
 
@@ -181,32 +151,20 @@ taxa1<- tibble::rownames_to_column(taxa, var = "subject.tax.ids")
 taxa1
 ```
 
-We need to remove the decimal points and NA values from the column in taxa
+We need to remove all the noise around the subject.tax.ids and just keep the number 
 
 ```{r}
-taxa1$subject.tax.ids <- str_extract(taxa1$subject.tax.ids, "\\d+")
+taxa1$subject.tax.ids <- str_extract(taxa1$subject.tax.ids, "\\d+") # regex command "\\d+") keeps only digits from 0-9
 taxa1
-nrow(taxa1) #42965
+#nrow(taxa1) #42965
+taxa_table_distinct <- distinct(taxa1)
+#nrow(taxa_table_distinct) #9239
 ```
 
-now I can merge these two tables using the column in common, subject.tax.ids. first i need to make the column values identical by sorting both columns from each table sequentially from low to high
-```{r}
 
-combined_blast_sorted <- combined_blast[order(combined_blast$subject.tax.ids), ]
-taxa_table_sorted <- taxa1[order(taxa1$subject.tax.ids), ]
-combined_blast_sorted 
-taxa_table_sorted
-taxa_table_distinct <- distinct(taxa_table_sorted)
-```
+And finally merging both taxonomy table and blast table using data.table  (left join and merge crashed my laptop!)
 
-And finally merging both taxonomy table and blast table using left join
 ```{r}
-#merged_with_taxa <- left_join(x = combined_blast_sorted, y = taxa_table_sorted, by.x ="subject.tax.ids", by.y = "subject.tax.ids" ) 
-#merged_with_taxa <- left_join(combined_blast_sorted, taxa_table_sorted, by ="subject.tax.ids")
-#nrow(merged_with_taxa)
-#merged_with_taxa_distinct <- distinct(merged_with_taxa) # why is there duplicates of reads in the first place that we have to filter out?
-#nrow(merged_with_taxa_distinct)
-#view(merged_with_taxa_distinct)
 library(data.table)
 
 combined_blast_table = data.table(combined_blast_sorted , key="subject.tax.ids")
@@ -214,6 +172,7 @@ taxa_table = data.table(taxa_table_distinct , key="subject.tax.ids")
 
 df.merged <- merge(combined_blast_table, taxa_table)
 View(df.merged)
+#randomly checked subject.tax.ids in this dataframe against ncbi search bar to check if the tax.id matches the species it should. checked rows 5, 82994, 349510, 549498, 572499...all match!yay!
 ```
 
 
@@ -231,11 +190,7 @@ superkingdom_prop <- df.merged%>%
   arrange(extraction.method, desc(prop)) 
 superkingdom_prop
 
-```
-
-Graph a staggered barchart with proportion of everything per extraction method
-
-```{r}
+#plot
 
 superkingdom_plot <-ggplot(superkingdom_prop,aes(x=extraction.method,y=prop,fill=superkingdom))+geom_col(position=position_dodge())+geom_text(aes(label=sprintf("%0.2f", prop)), position=position_dodge(width=0.9), vjust=-0.25, size=3)+labs(x="DNA extraction method", y="Proportion", title="Proportional distribution of superkingdoms present per extraction method")
 superkingdom_plot  +                      # Change fill & color
@@ -243,7 +198,7 @@ superkingdom_plot  +                      # Change fill & color
 
 ```
 
-Graph a staggered barchart with proportion of bacteria only
+Dataframe and barchart with proportion of bacterial phyla only
 ```{r}
 superkingdom_bac_prop <- df.merged%>% 
  group_by(extraction.method, superkingdom, phylum) %>%
@@ -261,12 +216,12 @@ superkingdom_bac_plot  +                      # Change fill & color
 ```
 
 
-Graph of proportion of everything else :
+Graph of proportion of everything else (archaea, eukaryota, NA) :
 ```{r}
 superkingdom_other_prop <- df.merged%>% 
  group_by(extraction.method, superkingdom) %>%
   filter(!str_detect(superkingdom, "Bacteria")) %>%
-  summarise(superkingdom_count = n()) #%>%
+  summarise(superkingdom_count = n()) %>%
   mutate(prop =prop.table(superkingdom_count)) %>%
   arrange(extraction.method, desc(prop)) 
   
@@ -278,7 +233,7 @@ superkingdom_other_plot  +                      # Change fill & color
 
 ```
 
-Graph of count of everything else :
+Graph of *count* of everything else (archaea, eukaryota, NA) :
 ```{r}
 superkingdom_other_count <- df.merged%>% 
  group_by(extraction.method, superkingdom) %>%
@@ -296,7 +251,7 @@ superkingdom_other_plot  +                      # Change fill & color
 ```
 
 
-What are the eukaryotes made up of?
+What phyla are the eukaryotes made up of?
 
 ```{r}
 phylum_euk_prop <- df.merged%>% 
@@ -314,7 +269,7 @@ phylum_euk_plot  +                      # Change fill & color
 
 ```
 
-What are the chordatas made up of?
+What species are the chordatas made up of? What are the top 10 hits per extraction method?
 
 ```{r}
 phylum_chor_prop <- df.merged%>% 
@@ -366,66 +321,4 @@ bacteria_plot +                      # Change fill & color
 
 
 
-
-
-
-
-
-
-```{r}
-merged_with_taxa_distinct %>% 
-  group_by(extraction.method, superkingdom, phylum) %>% 
-  summarise(phylum_count = n()) %>%
-  arrange(extraction.method, desc(phylum_count)) 
-
-```
-
-Summarise archeae 
-
-```{r}
-merged_with_taxa %>% 
-  group_by(extraction.method, superkingdom, phylum) %>% 
-  summarise(phylum_count = n()) %>%
-  arrange(extraction.method, desc(phylum_count)) 
- 
-  
-```
-
-
-Summarise fungi
-
-```{r}
-merged_with_taxa %>% 
-  group_by(extraction.method, superkingdom, phylum) %>% 
-  summarise(phylum_count = n()) %>%
-  arrange(extraction.method, desc(phylum_count)) 
- 
-  
-```
-
-
-Summarise how much host dna vs junk in eukaryote reads:
-
-
-```{r}
-merged_with_taxa %>% 
-  group_by(extraction.method, superkingdom, phylum) %>% 
-  summarise(phylum_count = n()) %>%
-  arrange(extraction.method, desc(phylum_count)) 
- 
-  
-```
-
-
-
-
-Convertting adata into phyloseq object for further analysis:
-
-```{r}
-install.packages("phyloseq")
-library(phyloseq)
-blast = otu_table(combined_blast_sorted, taxa_are_columns = TRUE)
-taxa = tax_table(taxa)
-physeq = phyloseq(blast, taxa)
-```
 
