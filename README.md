@@ -39,7 +39,7 @@ To convert these clean.fastq to clean.fasta, I simply use the package seqtk (con
 
 **Step four**:BLAST each barcodes cleaned, concatenated fasta file
 
-Done using blast_7.sh with database set to NCBI.
+Done using blast_ncbi_outfmt7.sh with database set to NCBI.
 
 **Step five** Parsing the concatenated blast text files for loading in R.
 
