@@ -43,4 +43,4 @@ Done using blast_ncbi_outfmt7.sh with database set to NCBI.
 
 **Step five** Parsing the concatenated blast text files for loading in R.
 
-Done using parse_v1_1.R run in parse.sh script.
+Done using parsefilter_blasttable.R run in parse_into_R.sh script.
