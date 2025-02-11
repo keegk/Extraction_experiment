@@ -1,0 +1,221 @@
+---
+title: "Adding extraction method column and merging blast text files 2025"
+output: html_notebook
+---
+
+```{r setup}
+library(tidyverse)
+library(stringr)
+```
+
+Barcode 1 before splitting:
+
+```{r}
+#install.packages("assertthat")
+#library(assertthat)
+#setwd("C:/Users/keegk/OneDrive - moredungroup/Karen Keegan/Nanopore/SQKRBK004/Extraction_experiment_run_22.2.23")   
+barcode_0.txt <- read.table("parsed_extexp2025_bar1_blast.txt", sep=",", header = TRUE)
+barcode_0.txt[1774, ]
+barcode_0.txt[1775, ]
+View(barcode_0.txt)
+grep(";", barcode_0.txt$subject.sci.names) 
+```
+
+
+
+Barcode 1 after splitting:
+
+```{r}
+ 
+barcode_1.txt <- read.table("parsed_extexp2025_bar1_blast.txt", sep=",", header = TRUE)
+
+barcode_1.1 <- barcode_1.txt %>%
+   separate_rows(subject.sci.names, subject.tax.ids, sep = ";")
+
+
+barcode_1.1[1774, ]
+barcode_1.1[1775, ]
+grep(";", barcode_1.1$subject.sci.names) 
+
+
+extraction.method <- c("fast_dna")
+barcode_1.1$extraction.method <- extraction.method
+
+
+barcode_1.1$subject.tax.ids <- as.character(barcode_1.1$subject.tax.ids) # for some reason the bind_rows function below is throwing up an error that some of the subject.tax.id columns are chracters and others are integers across all the barcode text files, so setting every barcodes column to character before merging.
+```
+
+Barcode 2
+
+```{r}
+ 
+barcode_2.txt <- read.table("parsed_extexp2025_bar2_blast.txt", sep=",",  header = TRUE)
+
+barcode_2.1 <- barcode_2.txt %>% separate_rows(subject.sci.names, subject.tax.ids, sep = ";")
+grep(";", barcode_2.1$subject.sci.names) 
+
+extraction.method <- c("mag_max")
+barcode_2.1$extraction.method <- extraction.method
+
+
+barcode_2.1$subject.tax.ids <- as.character(barcode_2.1$subject.tax.ids) # for some reason the bind_rows function below is throwing up an error that some of the subject.tax.id columns are chracters and others are integers across all the barcode text files, so setting every barcodes column to character before merging.
+
+```
+
+Barcode 3
+
+```{r}
+   
+barcode_3.txt <- read.table("parsed_extexp2025_bar3_blast.txt", sep=",",  header = TRUE)
+
+barcode_3.1 <- barcode_3.txt %>% separate_rows(subject.sci.names, subject.tax.ids, sep = ";")
+grep(";", barcode_3.1$subject.sci.names) 
+
+extraction.method <- c("Three_peaks")
+barcode_3.1$extraction.method <- extraction.method
+
+
+barcode_3.1$subject.tax.ids <- as.character(barcode_3.1$subject.tax.ids) # for some reason the bind_rows function below is throwing up an error that some of the subject.tax.id columns are chracters and others are integers across all the barcode text files, so setting every barcodes column to character before merging.
+
+```
+
+Barcode 4
+
+```{r}
+
+barcode_4.txt <- read.table("parsed_extexp2025_bar4_blast.txt", sep=",",  header = TRUE)
+
+
+barcode_4.1 <- barcode_4.txt %>% separate_rows(subject.sci.names, subject.tax.ids, sep = ";")
+grep(";", barcode_4.1$subject.sci.names) 
+
+extraction.method <- c("phenol_chloroform")
+barcode_4.1$extraction.method <- extraction.method
+
+
+barcode_4.1$subject.tax.ids <- as.character(barcode_4.1$subject.tax.ids) # for some reason the bind_rows function below is throwing up an error that some of the subject.tax.id columns are chracters and others are integers across all the barcode text files, so setting every barcodes column to character before merging.
+```
+
+Barcode 5
+
+```{r}
+
+barcode_5.txt <- read.table("parsed_extexp2025_bar5_blast.txt", sep=",",  header = TRUE)
+
+barcode_5.1 <- barcode_5.txt %>% separate_rows(subject.sci.names, subject.tax.ids, sep = ";")
+grep(";", barcode_5.1$subject.sci.names) 
+
+extraction.method <- c("UCP_pathogen_kit")
+barcode_5.1$extraction.method <- extraction.method
+
+
+barcode_5.1$subject.tax.ids <- as.character(barcode_5.1$subject.tax.ids) # for some reason the bind_rows function below is throwing up an error that some of the subject.tax.id columns are chracters and others are integers across all the barcode text files, so setting every barcodes column to character before merging.
+```
+
+Barcode 6
+
+```{r}
+
+barcode_6.txt <- read.table("parsed_extexp2025_bar6_blast.txt", sep=",",  header = TRUE)
+
+barcode_6.1 <- barcode_6.txt %>% separate_rows(subject.sci.names, subject.tax.ids, sep = ";")
+grep(";", barcode_6.1$subject.sci.names) 
+
+extraction.method <- c("Mag_Attract")
+barcode_6.1$extraction.method <- extraction.method
+
+
+barcode_6.1$subject.tax.ids <- as.character(barcode_6.1$subject.tax.ids) # for some reason the bind_rows function below is throwing up an error that some of the subject.tax.id columns are chracters and others are integers across all the barcode text files, so setting every barcodes column to character before merging.
+```
+
+Barcode 7
+
+```{r}
+
+barcode_7.txt <- read.table("parsed_extexp2025_bar7_blast.txt", sep=",",  header = TRUE)
+
+barcode_7.1 <- barcode_7.txt %>% separate_rows(subject.sci.names, subject.tax.ids, sep = ";")
+grep(";", barcode_7.1$subject.sci.names) 
+
+extraction.method <- c("Genomic_tip")
+barcode_7.1$extraction.method <- extraction.method
+
+barcode_7.1$subject.tax.ids <- as.character(barcode_7.1$subject.tax.ids) # for some reason the bind_rows function below is throwing up an error that some of the subject.tax.id columns are chracters and others are integers across all the barcode text files, so setting every barcodes column to character before merging.
+
+```
+No merging all dataframes using tidyverse bind_rows
+
+```{r}
+combined_blast <- bind_rows(barcode_1.1, barcode_2.1, barcode_3.1,barcode_4.1,barcode_5.1,barcode_6.1,barcode_7.1)
+View(combined_blast)
+#nrow(combined_blast) #42965
+nrow(combined_blast)
+#combined_blast_distinct<- dplyr::distinct(combined_blast, .keep_all = TRUE)
+#nrow(combined_blast_distinct)
+#View(combined_blast_distinct)
+#combined_blast[11434, ]# ok so both of these row numbers have two taxi ids assigned to them. This must be an inherent error in ncbi assignment giving the same species multiple tax ids? to correct this, maybe i use str_split to just take the first entry?
+#combined_blast$subject.tax.ids<- str_extract(combined_blast$subject.tax.ids, "\\d+") # the "\\d+" is a regex (regular expression) that means: \d a shorthand character class, which matches all numbers; it is the same as [0-9] and + is plus one or more of the expression. If i had this in brackets "(\\d+))" it would return all numeric values present but without the brackets, just returns one value
+
+#combined_blast[11434, ]
+```
+
+Setting up a table with taxa info for the combined
+
+```{r}
+#install.packages("taxonomizr")
+library(taxonomizr)
+prepareDatabase(getAccessions = FALSE) # name is "nameNode.sqlite"
+taxaID <- as.vector(combined_blast$subject.tax.ids)
+#print(taxaID)
+#taxa_id <- data.frame(combined_blast$subject.tax.ids)
+#taxa_id <- as.data.frame(getTaxonomy(taxaID, sqlFile = "nameNode.sqlite",  desiredTaxa = c("superkingdom", "phylum", "genus", "species")))
+taxa<-getTaxonomy(taxaID,sqlFile = "nameNode.sqlite", sep )
+#print(taxa)
+
+```
+
+ converting row names to column using rownames_to_column:
+```{r}
+taxa <- data.frame(taxa)
+taxa1<- tibble::rownames_to_column(taxa, var = "subject.tax.ids")
+taxa1
+```
+
+We need to remove the decimal points and NA values from the column in taxa
+
+```{r}
+taxa1$subject.tax.ids <- str_extract(taxa1$subject.tax.ids, "\\d+")
+taxa1
+nrow(taxa1) #42965
+View(taxa1)
+```
+
+now I can merge these two tables using the column in common, subject.tax.ids. first i need to make the column values identical by sorting both columns from each table sequentially from low to high
+```{r}
+
+combined_blast_sorted <- combined_blast[order(combined_blast$subject.tax.ids), ]
+nrow(combined_blast_sorted)
+combined_blast_distinct <- combined_blast_sorted
+nrow(combined_blast_distinct)
+taxa_table_sorted <- taxa1[order(taxa1$subject.tax.ids), ]
+taxa_table_distinct <- distinct(taxa_table_sorted)
+View(taxa_table_sorted)
+```
+
+And finally merging both taxonomy table and blast table using left join
+```{r}
+merged_with_taxa <- left_join(x = combined_blast_sorted, y = taxa_table_distinct, by ="subject.tax.ids") 
+#combined_blast[2644, ]
+#taxa1[2644, ]
+#taxa_merge <- combined_blast_sorted %>% group_by(subject.tax.ids) %>% select(subject.tax.ids) %>% left_join(taxa_table_distinct, by ="subject.tax.ids") %>% na.omit()
+
+#nrow(merged_with_taxa)
+merged_with_taxa_distinct <- distinct(merged_with_taxa) # why is there duplicates of reads in the first place that we have to filter out?
+#nrow(merged_with_taxa_distinct)
+#view(merged_with_taxa)
+
+merged_with_taxa_distinct2025 <- save(merged_with_taxa_distinct, file = "merged_with_taxa_distinct2025")
+load("merged_with_taxa_distinct2025") #this was saved with 2025 written after it but the actual file name loads in without the 2025 bit after it just FYI.
+
+```
+
