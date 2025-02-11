@@ -23,24 +23,27 @@ Each barcode represents a separate DNA extraction method. For each extraction me
 **Barcode7**:Genomic tip 100/G
 
 
-**Step One**: *Rebasecalling the fast5 files from the sequencing run*
+**Step 1**: *Rebasecalling the fast5 files from the sequencing run*
 
 For each barcode/extraction method, the pass and fail fast5 files from the sequencing run after 18hrs were combined and then rebasecalled using super accuracy guppy basecaller (version 6.0.1), bash script titled 'super_basecalling_SQK_RBK004.sh'.
 
-**Step Two**: Concatenating the 'pass' fastq files for each barcode
+**Step 1.1**: *QC of reads based on the summary sequencing files"
+
+Read QC statistics were generated from the summary sequencing files from each of the barcodes (guppy basecalling using version 6.0.1 outputs a unique summary sequencing file for each barcode). The R notebook "MagAttract_summary_seq.Rmd" is a notebook that details how the read QC statistics (e.g no. of reads, mean Q score etc) were generated. There are six other identical R notebooks to this, with the only difference being the name change and filtering of the correct extractiobn method/barcode. They are only not present in this directory due to the fact that 
+**Step 2**: Concatenating the 'pass' fastq files for each barcode
 
 Following basecalling using super accuracy mode, each barcode's new 'pass' fastq files were concatenated into one using the script 'concat_fastq_SQK_RBK004.sh' setting the input path as the the pass directory for a specific rebasecalled barcode (e.g  /mnt/shared/scratch/kkeegan/personal/extraction_exp/Rebasecalled_trimmed_super_accuracy/barcode_1/pass/barcode01) and the output path being the same directory but with the file name specific to the barcode being concatenated (e.g /mnt/shared/scratch/kkeegan/personal/extraction_exp/Rebasecalled_trimmed_super_accuracy/barcode_1/pass/barcode01/concat_barcode1.fastq)
 
-**Step three**: Cleaning up and converting fastq files to fasta
+**Step 3**: Cleaning up and converting fastq files to fasta
 
 I check for any duplicated reads that may be present and I also convert this fastq file to fasta for BLAST ANALYSIS not using a bash script but by running an interactive job on the cluster (srsh command to initiate interactive job) and for trimming, use the package SeqKit (conda install -c bioconda seqkit) and running seqkit rmdup concat.fastq -s -o clean.fastq. Barcode1 = 29 duplicates removed. Barcode 2 = 9 duplicates removed. Barcode3 = 45 duplicates removed. Barcode 4 = 4 duplicates removed. Barcode 5 = 2 duplicates removed. Barcode 6 = 9duplicates removed. Barcode 7 = 0 duplicates removed. 
 
 To convert these clean.fastq to clean.fasta, I simply use the package seqtk (conda install -c bioconda seqtk) and convert each barcodes concatenated cleaned fastq file to fasta using 'seqtk seq -a clean.fastq > cleaned_fasta.fasta'. Note the pass folder of barcode2 and barcode 5 has a directory called barcode1 which has three fastq files of total size 11KB. I did not include these fastq file in the final barcode 1 cleaned fasta file as im not 100% sure if it is barcode 1 (given that it is in the wrong barcode directory). 
 
-**Step four**:BLAST each barcodes cleaned, concatenated fasta file
+**Step 4**:BLAST each barcodes cleaned, concatenated fasta file
 
-Done using blast_ncbi_outfmt7.sh with database set to NCBI.
+Done using blast_ncbi_outfmt7.sh with database set to NCBI nt database (a mirror nt database on the HPCC Crop Diversity)
 
-**Step five** Parsing the concatenated blast text files for loading in R.
+**Step 5** Parsing the concatenated blast text files for loading in R.
 
 Done using parsefilter_blasttable.R run in parse_into_R.sh script.
