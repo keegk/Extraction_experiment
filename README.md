@@ -29,7 +29,10 @@ For each barcode/extraction method, the pass and fail fast5 files from the seque
 
 **Step 1.1**: *QC of reads based on the summary sequencing files"
 
-Read QC statistics were generated from the summary sequencing files from each of the barcodes (guppy basecalling using version 6.0.1 outputs a unique summary sequencing file for each barcode). The R notebook "MagAttract_summary_seq.Rmd" is a notebook that details how the read QC statistics (e.g no. of reads, mean Q score etc) were generated. There are six other identical R notebooks to this, with the only difference being the name change and filtering of the correct extractiobn method/barcode. They are only not present in this directory due to the fact that 
+Read QC statistics were generated from the summary sequencing files from each of the barcodes (guppy basecalling using version 6.0.1 outputs a unique summary sequencing file for each barcode). The R notebooks "<extraction method>_summary_seq.Rmd" are notebooks that detail how the read QC statistics (e.g no. of reads, mean Q score etc) were generated. There are seven of these R notebooks (one for each extraction method) with the only difference between them being the name change to the extraction method being examined and filtering of the correct barcode that corresponds to this extraction method.
+
+
+
 **Step 2**: Concatenating the 'pass' fastq files for each barcode
 
 Following basecalling using super accuracy mode, each barcode's new 'pass' fastq files were concatenated into one using the script 'concat_fastq_SQK_RBK004.sh' setting the input path as the the pass directory for a specific rebasecalled barcode (e.g  /mnt/shared/scratch/kkeegan/personal/extraction_exp/Rebasecalled_trimmed_super_accuracy/barcode_1/pass/barcode01) and the output path being the same directory but with the file name specific to the barcode being concatenated (e.g /mnt/shared/scratch/kkeegan/personal/extraction_exp/Rebasecalled_trimmed_super_accuracy/barcode_1/pass/barcode01/concat_barcode1.fastq)
