@@ -196,8 +196,9 @@ barcode_7.2 <- barcode_7.1 %>% anti_join(extexp2025_barcode7_remove_reads) #this
 ```
 No merging all dataframes using tidyverse bind_rows
 
+Just to note, that the code to remove wrong barcodes from each barcodes blast text file resulted in no wrong barcodes being removed (the code was tested in barcode 1 chunk above so the antijoin code used does work, implying that the wrong barcodes were filtered out at the blast stage. Why might this be? Reminder that the blast read filtering thus far is 90% id, evalue less than 1 x 10^-12 and max target seqs of 10. We have yet to add the further filtering (loose/stringent) to these blast hits. So potentially the wrong barcodes are just noisey and the hits to a subject do not pass the percent id or e value test - the only way i can think to test this is reblasting everything without the filters, but this is quite a lot of work, when we have already illustrated that these reads are not carrying through to our final blast results. 
 ```{r}
-combined_blast <- bind_rows(barcode_1.1, barcode_2.1, barcode_3.1,barcode_4.1,barcode_5.1,barcode_6.1,barcode_7.1)
+combined_blast <- bind_rows(barcode_1.2, barcode_2.2, barcode_3.2,barcode_4.2,barcode_5.2,barcode_6.2,barcode_7.2)
 View(combined_blast)
 #nrow(combined_blast) #42965
 nrow(combined_blast)
@@ -220,7 +221,7 @@ taxaID <- as.vector(combined_blast$subject.tax.ids)
 #print(taxaID)
 #taxa_id <- data.frame(combined_blast$subject.tax.ids)
 #taxa_id <- as.data.frame(getTaxonomy(taxaID, sqlFile = "nameNode.sqlite",  desiredTaxa = c("superkingdom", "phylum", "genus", "species")))
-taxa<-getTaxonomy(taxaID,sqlFile = "nameNode.sqlite", sep )
+taxa<-getTaxonomy(taxaID,sqlFile = "nameNode.sqlite", sep ) 
 #print(taxa)
 
 ```
@@ -228,6 +229,8 @@ taxa<-getTaxonomy(taxaID,sqlFile = "nameNode.sqlite", sep )
  converting row names to column using rownames_to_column:
 ```{r}
 taxa <- data.frame(taxa)
+taxa <- save(taxa, file = "taxa")
+load("taxa") # when we use add taxonomy, the dataframe of this has subject tax ids from our blast file as a column (properly turned into a column with correct name in the line below this) and all the names only (not taxa ids) of each phylogenetic class associated with the subject tax id
 taxa1<- tibble::rownames_to_column(taxa, var = "subject.tax.ids")
 taxa1
 ```
@@ -239,34 +242,36 @@ taxa1$subject.tax.ids <- str_extract(taxa1$subject.tax.ids, "\\d+")
 taxa1
 nrow(taxa1) #42965
 View(taxa1)
+
+#to note, i quickly cross referenced a handful of these subject tax ids by looking them up on ncbi taxonomy databse to confirm that the matches of the class names to a subject tax id are correct. All matched.
 ```
 
 now I can merge these two tables using the column in common, subject.tax.ids. first i need to make the column values identical by sorting both columns from each table sequentially from low to high
 ```{r}
 
-combined_blast_sorted <- combined_blast[order(combined_blast$subject.tax.ids), ]
-nrow(combined_blast_sorted)
-combined_blast_distinct <- combined_blast_sorted
-nrow(combined_blast_distinct)
-taxa_table_sorted <- taxa1[order(taxa1$subject.tax.ids), ]
-taxa_table_distinct <- distinct(taxa_table_sorted)
-View(taxa_table_sorted)
+combined_blast_sorted <- combined_blast[order(combined_blast$subject.tax.ids), ] #order the combined blast results (every barcode) by subject tax ID
+nrow(combined_blast_sorted) #COUNT THE NUMBER OF ROWS IN THIS dataset
+#combined_blast_distinct <- combined_blast_sorted #filter this combined blast dataframe to only retain one hit per read
+#nrow(combined_blast_distinct)
+taxa_table_sorted <- taxa1[order(taxa1$subject.tax.ids), ] #order the taxonomy table by subject tax ids
+taxa_table_distinct <- distinct(taxa_table_sorted) #filter this so i only have one subject tax id entry (rather than 10 of the same subject tax id). This is to reduce the size of this dataset, so that merges succesfully in the next R chunk
+#View(taxa_table_sorted) 
 ```
 
 And finally merging both taxonomy table and blast table using left join
 ```{r}
-merged_with_taxa <- left_join(x = combined_blast_sorted, y = taxa_table_distinct, by ="subject.tax.ids") 
+merged_with_taxa_2025 <- left_join(x = combined_blast_sorted, y = taxa_table_distinct, by ="subject.tax.ids") 
 #combined_blast[2644, ]
 #taxa1[2644, ]
 #taxa_merge <- combined_blast_sorted %>% group_by(subject.tax.ids) %>% select(subject.tax.ids) %>% left_join(taxa_table_distinct, by ="subject.tax.ids") %>% na.omit()
 
 #nrow(merged_with_taxa)
-merged_with_taxa_distinct <- distinct(merged_with_taxa) # why is there duplicates of reads in the first place that we have to filter out?
+#merged_with_taxa_distinct_2025 <- distinct(merged_with_taxa_2025) # this has the exact same number of entries (n = 2290116) as merged_with_taxa. This would filter only out rows if you had any row that was identical in every single column.it doesnt necessarily filter out the exact same read if the other coulmns (such as alignment length) differ slightly between these different read hits. This is somewhat redundant code so is being excluded , as later on in the "loose_stringent_fuiltering" dataset, the filtering on multiple instances of the same read are dealt with.
 #nrow(merged_with_taxa_distinct)
 #view(merged_with_taxa)
 
-merged_with_taxa_distinct2025 <- save(merged_with_taxa_distinct, file = "merged_with_taxa_distinct2025")
-load("merged_with_taxa_distinct2025") #this was saved with 2025 written after it but the actual file name loads in without the 2025 bit after it just FYI.
+merged_with_taxa_2025 <- save(merged_with_taxa_2025, file = "merged_with_taxa_2025")
+load("merged_with_taxa_2025") #this was saved with 2025 written after it but the actual file name loads in without the 2025 bit after it just FYI.
 
 ```
 
