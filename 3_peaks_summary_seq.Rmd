@@ -8,6 +8,7 @@ Tidyverse package loaded at the start of this notebook, as it is a convenient pa
 ```{r set up}
 #install.packages("tidyverse")
 library(tidyverse)
+library(scales) #for the percentage function below
 ```
 
 
@@ -16,8 +17,17 @@ library(tidyverse)
 ```{r}
 sequencing_summary <- read_delim ("C:/Users/keegk/OneDrive - moredungroup/Karen Keegan/Nanopore/SQKRBK004/Extraction_experiment_run_22.2.23/Rebasecalling/Rebasecalled_trimmed_super_accuracy/barcode_3/sequencing_summary_barcode3.txt")
 
+
+extexp2025_barcode3_remove_reads <- sequencing_summary %>%
+                      filter(!barcode_arrangement == "barcode03") %>%
+                      select(read_id) #this is isolating the reads that are on the wrong barcode, so I can use this read Id list to remove these reads in the blast text files (blast text files are assigned taxonomy in the notebook "taxonomizr_blast_tidied_2025.Rmd")
+
+extexp2025_barcode3_remove_reads <- save(extexp2025_barcode3_remove_reads, file = "extexp2025_barcode3_remove_reads")
+load("extexp2025_barcode3_remove_reads") #this was saved with 2025 written after it but the actual file name loads in without the 2025 bit after it just FYI.
+
+
 sequencing_summary <- sequencing_summary %>%
-                      filter(barcode_full_arrangement == "RBK403") #making sure only the correct barcode is included
+                      filter(barcode_arrangement == "barcode03") #making sure only the correct barcode is included
 ```
 
 
