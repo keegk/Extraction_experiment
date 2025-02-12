@@ -1,0 +1,89 @@
+---
+title: "Loose and stringent filtering for extraction experiment"
+output: html_notebook
+---
+
+I am taking the taxonomy file generated from taxonomizr_blast_tidied.Rmd and starting with that file for all subsequent work:
+
+```{r setup}
+library(tidyverse)
+library(stringr)
+```
+
+```{r}
+load("merged_with_taxa_distinct2025") #this was saved with 2025 written after it in the notebook taxonomizr_blast_tidied_2025, but the actual file name loads in without the 2025 bit after it just FYI.
+
+```
+
+Loose filtering:
+
+```{r}
+loose_ext_exp_2025 <- merged_with_taxa_distinct %>%
+               
+                mutate(proportional_gap_number = gaps/alignment.length) %>%# 7.11.24 adding this as i think gaps set at less than 5 is too harsh for longer reads 
+                mutate(proportional_mismatch_number = mismatches/alignment.length) %>% # 7.11.24 adding this as i think gaps set at less than 5 is too harsh for longer reads 
+ # filter(gaps <= 5) %>% #and across the whole dataset, filter out any reads that have gaps more than 5 and
+               #filter(mismatches <= 200) %>% #mismatches more than 200
+                          filter(proportional_gap_number <= 0.10) %>% #here i am saying that there can be up to and including 10% gaps in the alignment 
+                           filter(proportional_mismatch_number <= 0.10) %>%#line 428-433 is general filtering of the entire dataset
+  
+  
+               group_by (query.acc, subject.tax.ids) %>% # code from line 436-451 written with nick as the weighted approach 25.10.24
+            
+               mutate(evalue_nonzero = ifelse(evalue == 0, 1, evalue), 
+                      relative_evalue = ifelse(evalue == 0, 1, min(evalue_nonzero)/evalue_nonzero)) %>%
+              mutate(relative_alignment_length = alignment.length/max(alignment.length)) %>%
+              mutate(alignment_count = n()) %>% #taxon alignment count within a read 
+              
+              ungroup() %>%
+              group_by(query.acc) %>%
+             
+              mutate(relative_count = alignment_count/n()) %>% #proportion of read alignments to a taxon
+               mutate(weight_score = relative_evalue*relative_alignment_length*(percent.identity/100)) %>%
+             filter(weight_score == max(weight_score)) %>%
+              filter(relative_count == max(relative_count)) %>%
+              slice_sample(n=1) %>%
+              ungroup() 
+
+save(loose_ext_exp_2025, file = "loose_ext_exp_2025") #saving the file for quick reloading later on
+load("loose_ext_exp_2025")
+```
+
+Stringent filtering:
+
+```{r}
+stringent_ext_exp_2025 <- merged_with_taxa_distinct  %>%
+                
+                mutate(proportional_gap_number = gaps/alignment.length) %>%# 7.11.24 adding this as i think gaps set at less than 5 is too harsh for longer reads 
+                mutate(proportional_mismatch_number = mismatches/alignment.length) %>% # 7.11.24 adding this as i think gaps set at less than 5 is too harsh for longer reads 
+ # filter(gaps <= 5) %>% #and across the whole dataset, filter out any reads that have gaps more than 5 and
+               #filter(mismatches <= 200) %>% #mismatches more than 200
+                          filter(proportional_gap_number <= 0.1) %>% #here i am saying that there can be up to and including 10% gaps in the alignment 
+                           filter(proportional_mismatch_number <= 0.1) %>%#line 428-433 is general filtering of the entire dataset
+               # filter(mismatches <= 200) %>%
+                mutate(alignment.prop = alignment.length/query.length)%>%
+                filter(alignment.prop >= 0.25) %>%
+                filter(query.length >= 500)%>%
+                filter(subject.length >= 100)%>% #line 428-433 is general filtering of the entire dataset
+  
+  
+               group_by (query.acc, subject.tax.ids) %>% # code from line 436-451 written with nick as the weighted approach 25.10.24
+            
+               mutate(evalue_nonzero = ifelse(evalue == 0, 1, evalue), 
+                      relative_evalue = ifelse(evalue == 0, 1, min(evalue_nonzero)/evalue_nonzero)) %>%
+              mutate(relative_alignment_length = alignment.length/max(alignment.length)) %>%
+              mutate(alignment_count = n()) %>% #taxon alignment count within a read 
+              
+              ungroup() %>%
+              group_by(query.acc) %>%
+             
+              mutate(relative_count = alignment_count/n()) %>% #proportion of read alignments to a taxon
+               mutate(weight_score = relative_evalue*relative_alignment_length*(percent.identity/100)) %>%
+             filter(weight_score == max(weight_score)) %>%
+              filter(relative_count == max(relative_count)) %>%
+              slice_sample(n=1) %>%
+              ungroup()
+
+save(stringent_ext_exp_2025, file = "stringent_ext_exp_2025") #saving the file for quick reloading later on
+load("stringent_ext_exp_2025")
+```
