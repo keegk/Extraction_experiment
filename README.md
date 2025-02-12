@@ -22,6 +22,7 @@ Each barcode represents a separate DNA extraction method. For each extraction me
 
 **Barcode7**:Genomic tip 100/G
 
+**Methodology**
 
 **Step 1**: *Rebasecalling the fast5 files from the sequencing run*
 
@@ -62,4 +63,8 @@ Using the notebook "loose_stringent_filtering.Rmd", the dataframe merged_with_ta
 
 ![filtering_flow_chart](https://github.com/user-attachments/assets/7e24707f-eb6e-4c1c-837c-6612e9ccc52b)
 
+**Results**
 
+*Superkingdom counts/proportions per extraction method, bacterial phyla proportions and heatmap per extraction method**
+
+The R notebook "superkingdom_bacteria_plots_2025.Rmd" has the code used to generate the figures used in the manuscript, namely; the superkingdom counts per extraction method, the bacterial phyla proportions per extraction method and the heatmap of bacterial phyla per extraction method. Note there are two versions of each of these figures in the manuscript - one for the loose filtering dataset and corresponding figures using the stringent filtering dataset.
