@@ -1,0 +1,271 @@
+---
+title: "extraction experiment 2025 superkingdom and bacterial phyla plots"
+output: html_notebook
+---
+
+This notebook has the 2025 updated plots for: superkingdom counts and proportion plot, bacterial phyla proportion plot and bacterial phyla heat map for both the loose and stringent dataset.
+
+```{r setup}
+library(tidyverse)
+library(stringr)
+```
+
+```{r}
+load("loose_ext_exp_2025")
+load("stringent_ext_exp_2025")
+```
+
+
+**Loose filtering**
+
+Summarise how many superkingdoms per extraction method
+
+```{r fig.width = 10, fig.height = 11}
+
+#phylum count to proportions
+superkingdom_loose_2025 <- loose_ext_exp_2025%>% 
+  mutate(read.length.cat = ifelse(query.length > 5000, "read length >5000", 
+                                  ifelse(query.length < 1000, "read length <1000",
+                                         "read length 1000-5000"))) %>%
+  mutate(read.length.cat = factor(read.length.cat, 
+                                  levels = c("read length <1000", "read length 1000-5000", "read length >5000"))) %>%
+ group_by(extraction.method, superkingdom, read.length.cat) %>%
+  summarise(superkingdom_count = n()) %>%
+  ungroup() %>%
+  group_by(superkingdom, read.length.cat) %>% #added this line of code on 10.2.25 as the previous code was calculating the proportions incorrectly. I need to ungroup on line 34 and regroup just superkingdom and read.length.cat to make sure we are only getting proportions of the phyla present at a specific read length category and not the proportion of the phyla across all read length categories for a given extraction method
+  mutate(prop =prop.table(superkingdom_count)) %>%
+  arrange(extraction.method, desc(prop)) 
+superkingdom_loose_2025
+
+#prop plot
+
+superkingdom_loose_2025 %>% 
+  mutate(superkingdom = replace_na(superkingdom, "Unassigned")) %>%
+  ggplot(aes(x = extraction.method, y = prop, fill = superkingdom))   +
+    geom_col(position = position_dodge()) +
+    geom_text(aes(label = sprintf("%0.2f", prop)), position = position_dodge(width = 0.9), vjust = -0.25, size =3) +
+    labs(x="DNA extraction method", y="Proportion", 
+        title="Proportional distribution of superkingdoms present per extraction method") +
+    scale_fill_brewer(palette = "RdYlBu") + # Change fill & color
+    theme(axis.text.x = element_text(angle  = 90, vjust = 0.5, hjust = 1)) +
+    facet_wrap(~ superkingdom + read.length.cat, ncol = 3, scales = "free_y")
+
+#count plot
+my_colours <- RColorBrewer::brewer.pal(5, "RdYlBu")
+superkingdom_loose_2025 %>% 
+  mutate(superkingdom = replace_na(superkingdom, "Unassigned")) %>%
+  ggplot(aes(x = extraction.method, y = superkingdom_count, fill = superkingdom))   +
+    geom_col(position = position_dodge()) +
+    #geom_text(aes(label = sprintf("%i", superkingdom_count)), angle = 90, size =3,) +
+    geom_text(aes(label = sprintf("%i", superkingdom_count)), position = position_dodge(width = 0.9), vjust = -0.25, size =3) +
+    labs(x="DNA extraction method", y="Count", 
+        title="Distribution of superkingdoms present per extraction method") +
+  scale_fill_manual(values =my_colours) +
+   # scale_color_manual(values=c("#d73027","#fdae61","#ffffbf","#abd9e9", "#4575b4")) + # Change fill & color
+    theme(axis.text.x = element_text(angle  = 90, vjust = 0.5, hjust = 1)) +
+    facet_grid(cols = vars(read.length.cat), rows = vars(superkingdom), scales = "free_y")
+
+```
+
+
+** Loose filtering, bacterial phyla proportions**
+
+Summarise how many bacterial phyla per extraction method
+
+
+
+```{r fig.align="centre", fig.width = 12, fig.height = 15, dpi=300}
+#install.packages("RColorBrewer")                   # Install RColorBrewer package
+library("RColorBrewer") 
+library("ggplot2")
+#display.brewer.all(colorblindFriendly = TRUE) gives you codes for all the colour blind friendly colour templates
+loose_ext_exp_2025_bac <- loose_ext_exp_2025%>% 
+  filter(superkingdom == "Bacteria") %>%
+  group_by(extraction.method, phylum) %>%
+  distinct(subject.tax.ids) %>% #adding this 26.4.24 to remove multiple hits to the same taxa, inflating the numbers
+  summarise(phylum_count = n()) %>%
+  mutate(prop =prop.table(phylum_count)) %>%
+  ungroup() %>%
+  arrange(desc(prop)) %>%
+  mutate(phylum = replace_na(phylum, "Unassigned")) %>%
+  mutate(phylum = factor(phylum, levels = unique(phylum)))
+loose_ext_exp_2025_bac
+  
+ # mutate(prop =prop.table(phylum_count)) %>%
+#  arrange(extraction.method, desc(prop)) %>%
+ #   slice(1:10) 
+#phyla_prop #pseudomonadota is a synonym for proteobacteria!Bacillota used to be called firmicutes....see https://science.thewire.in/the-sciences/ncbi-taxonomy-prokaryotes-phylum-names-firmicutes-proteobacteria/ for recent (2021) taxonomy changes
+# my_colours <- RColorBrewer::brewer.pal(10, "RdYlBu")[1:10]
+loose_ext_exp_2025_bac %>% 
+ # filter(prop > 0.002) %>% #filter to phyla that are present at least 0.2% in the data
+  #mutate(phylum = if_else(prop < 0.002, "Other", phylum)) %>%#if the proporion of the phyla is less than 0.2%, then put all these phyla as 'other'\
+  mutate(phylum = if_else(prop < 0.02, "Other", phylum)) %>% #AFTER FILTERING FOR UNIQUE TAXA ID, im now changing the other phyla proportion to 0.02, becuase a lot more will be represented on the graph if i left it at 0.002
+  ggplot(aes(x=extraction.method,y=prop, fill=phylum)) +
+    geom_col() +
+   # ylim(1,0) +
+  ylim(0,1) + #26.4.24 flipping this back to 0 to 1 becuase its more interpretable now
+    labs(x="DNA extraction method", y="Proportion") +
+        #title="Proportional distribution of bacterial phyla present per extraction method") +
+     theme(text = element_text(size=25),
+    axis.text.x = element_text(angle  = 90, vjust = 1.0, hjust = 1.0)) +
+  #scale_fill_brewer(palette = "RdYlBu", direction = 1) + 
+scale_fill_manual(values=c("#dd3497","#ffffbf", "#313695", "#abd9e9","#fdae61", "#4575b4","#a50026","#addd8e","#bcbddc", "#fee090" ))
+ 
+
+#ggsave(file ="bacterial_phyla_all_count_other_212224.png", plot = phyla_prop, width=4, height=4,dpi=300")
+
+ggsave(file="bacterial_phyla_prop_2025_loose.pdf", width=4, height=4) 
+```
+
+
+
+**loose filtering - heatmap of bacteria phyla**
+
+```{r fig.align="centre", fig.width = 15, fig.height = 18, dpi=300}
+library(ggplot2)
+packageVersion("ggplot2")
+library("RColorBrewer") 
+packageVersion("RColorBrewer")
+
+loose_ext_exp_2025 %>%
+  filter(superkingdom == "Bacteria") %>%
+  group_by(phylum, extraction.method) %>%
+  summarise(phylum_count = n()) %>%
+  arrange(desc(phylum_count)) %>%
+  top_n(10, phylum_count) %>%
+ggplot(aes(x = extraction.method, y = phylum, fill = log10(phylum_count))) +
+  geom_tile() +
+  theme(text = element_text(size=25),
+    axis.text.x = element_text(angle  = 90, vjust = 1.0, hjust = 1.0)) +
+  scale_fill_distiller(palette = 'YlOrRd', direction = 1) +
+  labs(x="DNA extraction method", y="Bacterial phyla")
+        #title="Heat map of bacterial phyla present in the core dataset")
+```
+
+
+
+**Stringent filtering**
+
+Summarise how many superkingdoms per extraction method
+
+```{r fig.width = 10, fig.height = 11}
+
+#phylum count to proportions
+superkingdom_stringent_2025 <- stringent_ext_exp_2025%>% 
+  mutate(read.length.cat = ifelse(query.length > 5000, "read length >5000", 
+                                  ifelse(query.length < 1000, "read length <1000",
+                                         "read length 1000-5000"))) %>%
+  mutate(read.length.cat = factor(read.length.cat, 
+                                  levels = c("read length <1000", "read length 1000-5000", "read length >5000"))) %>%
+ group_by(extraction.method, superkingdom, read.length.cat) %>%
+   summarise(superkingdom_count = n()) %>%
+  ungroup() %>%
+  group_by(superkingdom, read.length.cat) %>% 
+  mutate(prop =prop.table(superkingdom_count)) %>%
+  arrange(extraction.method, desc(prop)) 
+superkingdom_stringent_2025
+
+#prop plot
+
+superkingdom_stringent_2025 %>% 
+  mutate(superkingdom = replace_na(superkingdom, "Unassigned")) %>%
+  ggplot(aes(x = extraction.method, y = prop, fill = superkingdom))   +
+    geom_col(position = position_dodge()) +
+    geom_text(aes(label = sprintf("%0.2f", prop)), position = position_dodge(width = 0.9), vjust = -0.25, size =3) +
+    labs(x="DNA extraction method", y="Proportion", 
+        title="Proportional distribution of superkingdoms present per extraction method") +
+    scale_fill_brewer(palette = "RdYlBu") + # Change fill & color
+    theme(axis.text.x = element_text(angle  = 90, vjust = 0.5, hjust = 1)) +
+    facet_wrap(~ superkingdom + read.length.cat, ncol = 3, scales = "free_y")
+
+#count plot
+my_colours <- RColorBrewer::brewer.pal(5, "RdYlBu")
+superkingdom_stringent_2025 %>% 
+  mutate(superkingdom = replace_na(superkingdom, "Unassigned")) %>%
+  ggplot(aes(x = extraction.method, y = superkingdom_count, fill = superkingdom))   +
+    geom_col(position = position_dodge()) +
+    #geom_text(aes(label = sprintf("%i", superkingdom_count)), angle = 90, size =3,) +
+    geom_text(aes(label = sprintf("%i", superkingdom_count)), position = position_dodge(width = 0.9), vjust = -0.25, size =3) +
+    labs(x="DNA extraction method", y="Count", 
+        title="Distribution of superkingdoms present per extraction method") +
+  scale_fill_manual(values =my_colours) +
+   # scale_color_manual(values=c("#d73027","#fdae61","#ffffbf","#abd9e9", "#4575b4")) + # Change fill & color
+    theme(axis.text.x = element_text(angle  = 90, vjust = 0.5, hjust = 1)) +
+    facet_grid(cols = vars(read.length.cat), rows = vars(superkingdom), scales = "free_y")
+
+```
+
+***Stringent filtering, bacterial phyla **
+
+
+Summarise how many bacterial phyla per extraction method
+
+
+
+```{r fig.align="centre", fig.width = 12, fig.height = 15, dpi=300}
+#install.packages("RColorBrewer")                   # Install RColorBrewer package
+library("RColorBrewer") 
+library("ggplot2")
+#display.brewer.all(colorblindFriendly = TRUE) gives you codes for all the colour blind friendly colour templates
+stringent_ext_exp_2025_bac <- stringent_ext_exp_2025%>% 
+  filter(superkingdom == "Bacteria") %>%
+  group_by(extraction.method, phylum) %>%
+  distinct(subject.tax.ids) %>% #adding this 26.4.24 to remove multiple hits to the same taxa, inflating the numbers
+  summarise(phylum_count = n()) %>%
+  mutate(prop =prop.table(phylum_count)) %>%
+  ungroup() %>%
+  arrange(desc(prop)) %>%
+  mutate(phylum = replace_na(phylum, "Unassigned")) %>%
+  mutate(phylum = factor(phylum, levels = unique(phylum)))
+#display.brewer.all(colorblindFriendly = TRUE) gives you codes for all the colour blind friendly colour templates
+stringent_ext_exp_2025_bac
+  
+ # mutate(prop =prop.table(phylum_count)) %>%
+#  arrange(extraction.method, desc(prop)) %>%
+ #   slice(1:10) 
+#phyla_prop #pseudomonadota is a synonym for proteobacteria!Bacillota used to be called firmicutes....see https://science.thewire.in/the-sciences/ncbi-taxonomy-prokaryotes-phylum-names-firmicutes-proteobacteria/ for recent (2021) taxonomy changes
+# my_colours <- RColorBrewer::brewer.pal(10, "RdYlBu")[1:10]
+#display.brewer.all(colorblindFriendly = TRUE) gives you codes for all the colour blind friendly colour templates
+stringent_ext_exp_2025_bac %>% 
+ # filter(prop > 0.002) %>% #filter to phyla that are present at least 0.2% in the data
+  #mutate(phylum = if_else(prop < 0.002, "Other", phylum)) %>%#if the proporion of the phyla is less than 0.2%, then put all these phyla as 'other'\
+  mutate(phylum = if_else(prop < 0.02, "Other", phylum)) %>% #AFTER FILTERING FOR UNIQUE TAXA ID, im now changing the other phyla proportion to 0.02, becuase a lot more will be represented on the graph if i left it at 0.002
+  ggplot(aes(x=extraction.method,y=prop, fill=phylum)) +
+    geom_col() +
+   # ylim(1,0) +
+  ylim(0,1) + #26.4.24 flipping this back to 0 to 1 becuase its more interpretable now
+    labs(x="DNA extraction method", y="Proportion") +
+        #title="Proportional distribution of bacterial phyla present per extraction method") +
+     theme(text = element_text(size=25),
+    axis.text.x = element_text(angle  = 90, vjust = 1.0, hjust = 1.0)) +
+  #scale_fill_brewer(palette = "RdYlBu", direction = 1) + 
+scale_fill_manual(values=c("#dd3497","#ffffbf", "#313695", "#abd9e9","#fdae61", "#4575b4","#a50026","#addd8e","#bcbddc", "#fee090" ))
+ 
+
+#ggsave(file ="bacterial_phyla_all_count_other_212224.png", plot = phyla_prop, width=4, height=4,dpi=300")
+
+ggsave(file="bacterial_phyla_prop_2025_stringent.pdf", width=4, height=4) 
+```
+
+**stringent filtering - heatmap of bacteria phyla**
+
+```{r fig.align="centre", fig.width = 15, fig.height = 18, dpi=300}
+library(ggplot2)
+packageVersion("ggplot2")
+library("RColorBrewer") 
+packageVersion("RColorBrewer")
+
+stringent_ext_exp_2025 %>%
+  filter(superkingdom == "Bacteria") %>%
+  group_by(phylum, extraction.method) %>%
+  summarise(phylum_count = n()) %>%
+  arrange(desc(phylum_count)) %>%
+  top_n(10, phylum_count) %>%
+ggplot(aes(x = extraction.method, y = phylum, fill = log10(phylum_count))) +
+  geom_tile() +
+  theme(text = element_text(size=25),
+    axis.text.x = element_text(angle  = 90, vjust = 1.0, hjust = 1.0)) +
+  scale_fill_distiller(palette = 'YlOrRd', direction = 1) +
+  labs(x="DNA extraction method", y="Bacterial phyla")
+        #title="Heat map of bacterial phyla present in the core dataset")
+```
