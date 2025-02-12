@@ -20,7 +20,7 @@ barcode_1.1 <- barcode_1.txt %>%
 
 grep(";", barcode_1.1$subject.sci.names) 
 
-extraction.method <- c("fast_dna")
+extraction.method <- c("FAST DNA")
 barcode_1.1$extraction.method <- extraction.method
 
 
@@ -54,7 +54,7 @@ barcode_2.txt <- read.table("parsed_extexp2025_bar2_blast.txt", sep=",",  header
 barcode_2.1 <- barcode_2.txt %>% separate_rows(subject.sci.names, subject.tax.ids, sep = ";")
 grep(";", barcode_2.1$subject.sci.names) 
 
-extraction.method <- c("mag_max")
+extraction.method <- c("MagMAX")
 barcode_2.1$extraction.method <- extraction.method
 
 
@@ -79,7 +79,7 @@ barcode_3.txt <- read.table("parsed_extexp2025_bar3_blast.txt", sep=",",  header
 barcode_3.1 <- barcode_3.txt %>% separate_rows(subject.sci.names, subject.tax.ids, sep = ";")
 grep(";", barcode_3.1$subject.sci.names) 
 
-extraction.method <- c("Three_peaks")
+extraction.method <- c("Three peaks")
 barcode_3.1$extraction.method <- extraction.method
 
 
@@ -105,7 +105,7 @@ barcode_4.txt <- read.table("parsed_extexp2025_bar4_blast.txt", sep=",",  header
 barcode_4.1 <- barcode_4.txt %>% separate_rows(subject.sci.names, subject.tax.ids, sep = ";")
 grep(";", barcode_4.1$subject.sci.names) 
 
-extraction.method <- c("phenol_chloroform")
+extraction.method <- c("PC")
 barcode_4.1$extraction.method <- extraction.method
 
 
@@ -130,7 +130,7 @@ barcode_5.txt <- read.table("parsed_extexp2025_bar5_blast.txt", sep=",",  header
 barcode_5.1 <- barcode_5.txt %>% separate_rows(subject.sci.names, subject.tax.ids, sep = ";")
 grep(";", barcode_5.1$subject.sci.names) 
 
-extraction.method <- c("UCP_pathogen_kit")
+extraction.method <- c("UCP")
 barcode_5.1$extraction.method <- extraction.method
 
 
@@ -154,7 +154,7 @@ barcode_6.txt <- read.table("parsed_extexp2025_bar6_blast.txt", sep=",",  header
 barcode_6.1 <- barcode_6.txt %>% separate_rows(subject.sci.names, subject.tax.ids, sep = ";")
 grep(";", barcode_6.1$subject.sci.names) 
 
-extraction.method <- c("Mag_Attract")
+extraction.method <- c("MagAttract")
 barcode_6.1$extraction.method <- extraction.method
 
 
@@ -179,7 +179,7 @@ barcode_7.txt <- read.table("parsed_extexp2025_bar7_blast.txt", sep=",",  header
 barcode_7.1 <- barcode_7.txt %>% separate_rows(subject.sci.names, subject.tax.ids, sep = ";")
 grep(";", barcode_7.1$subject.sci.names) 
 
-extraction.method <- c("Genomic_tip")
+extraction.method <- c("Genomic-tip")
 barcode_7.1$extraction.method <- extraction.method
 
 barcode_7.1$subject.tax.ids <- as.character(barcode_7.1$subject.tax.ids) # for some reason the bind_rows function below is throwing up an error that some of the subject.tax.id columns are chracters and others are integers across all the barcode text files, so setting every barcodes column to character before merging.
