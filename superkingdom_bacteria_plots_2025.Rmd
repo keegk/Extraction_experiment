@@ -20,7 +20,7 @@ load("stringent_ext_exp_2025")
 
 Summarise how many superkingdoms per extraction method
 
-```{r fig.width = 10, fig.height = 11}
+```{r fig.width = 13, fig.height = 22}
 
 #phylum count to proportions
 superkingdom_loose_2025 <- loose_ext_exp_2025%>% 
@@ -39,9 +39,12 @@ superkingdom_loose_2025
 
 #prop plot
 
+
+level_order <- c('FAST DNA', 'MagMAX', 'Three peaks', 'PC','UCP','MagAttract', 'Genomic-tip') #so that the extraction  method order is the same in the plots as it is in the manuscript
+
 superkingdom_loose_2025 %>% 
   mutate(superkingdom = replace_na(superkingdom, "Unassigned")) %>%
-  ggplot(aes(x = extraction.method, y = prop, fill = superkingdom))   +
+  ggplot(aes(x= factor(extraction.method, level = level_order) , y = prop, fill = superkingdom))   +
     geom_col(position = position_dodge()) +
     geom_text(aes(label = sprintf("%0.2f", prop)), position = position_dodge(width = 0.9), vjust = -0.25, size =3) +
     labs(x="DNA extraction method", y="Proportion", 
@@ -54,15 +57,17 @@ superkingdom_loose_2025 %>%
 my_colours <- RColorBrewer::brewer.pal(5, "RdYlBu")
 superkingdom_loose_2025 %>% 
   mutate(superkingdom = replace_na(superkingdom, "Unassigned")) %>%
-  ggplot(aes(x = extraction.method, y = superkingdom_count, fill = superkingdom))   +
+  ggplot(aes(x= factor(extraction.method, level = level_order) , y = superkingdom_count, fill = superkingdom))   +
     geom_col(position = position_dodge()) +
     #geom_text(aes(label = sprintf("%i", superkingdom_count)), angle = 90, size =3,) +
-    geom_text(aes(label = sprintf("%i", superkingdom_count)), position = position_dodge(width = 0.9), vjust = -0.25, size =3) +
+    geom_text(aes(label = sprintf("%i", superkingdom_count)), position = position_dodge(width = 0.9), vjust = -0.25, size =5) +
     labs(x="DNA extraction method", y="Count", 
         title="Distribution of superkingdoms present per extraction method") +
   scale_fill_manual(values =my_colours) +
    # scale_color_manual(values=c("#d73027","#fdae61","#ffffbf","#abd9e9", "#4575b4")) + # Change fill & color
-    theme(axis.text.x = element_text(angle  = 90, vjust = 0.5, hjust = 1)) +
+    theme(axis.text.x = element_text(angle  = 90, vjust = 0.5, hjust = 1, size = 20)) +
+   theme(axis.text.y = element_text(size = 20)) +
+  theme(text=element_text(size=20)) +
     facet_grid(cols = vars(read.length.cat), rows = vars(superkingdom), scales = "free_y")
 
 ```
@@ -90,7 +95,11 @@ loose_ext_exp_2025_bac <- loose_ext_exp_2025%>%
   mutate(phylum = replace_na(phylum, "Unassigned")) %>%
   mutate(phylum = factor(phylum, levels = unique(phylum)))
 loose_ext_exp_2025_bac
-  
+
+
+
+level_order <- c('FAST DNA', 'MagMAX', 'Three peaks', 'PC','UCP','MagAttract', 'Genomic-tip') #so that the extraction  method order is the same in the plots as it is in the manuscript
+
  # mutate(prop =prop.table(phylum_count)) %>%
 #  arrange(extraction.method, desc(prop)) %>%
  #   slice(1:10) 
@@ -100,7 +109,7 @@ loose_ext_exp_2025_bac %>%
  # filter(prop > 0.002) %>% #filter to phyla that are present at least 0.2% in the data
   #mutate(phylum = if_else(prop < 0.002, "Other", phylum)) %>%#if the proporion of the phyla is less than 0.2%, then put all these phyla as 'other'\
   mutate(phylum = if_else(prop < 0.02, "Other", phylum)) %>% #AFTER FILTERING FOR UNIQUE TAXA ID, im now changing the other phyla proportion to 0.02, becuase a lot more will be represented on the graph if i left it at 0.002
-  ggplot(aes(x=extraction.method,y=prop, fill=phylum)) +
+  ggplot(aes(x= factor(extraction.method, level = level_order) ,y=prop, fill=phylum)) +
     geom_col() +
    # ylim(1,0) +
   ylim(0,1) + #26.4.24 flipping this back to 0 to 1 becuase its more interpretable now
@@ -127,13 +136,16 @@ packageVersion("ggplot2")
 library("RColorBrewer") 
 packageVersion("RColorBrewer")
 
+
+level_order <- c('FAST DNA', 'MagMAX', 'Three peaks', 'PC','UCP','MagAttract', 'Genomic-tip') #so that the extraction  method order is the same in the plots as it is in the manuscript
+
 loose_ext_exp_2025 %>%
   filter(superkingdom == "Bacteria") %>%
   group_by(phylum, extraction.method) %>%
   summarise(phylum_count = n()) %>%
   arrange(desc(phylum_count)) %>%
   top_n(10, phylum_count) %>%
-ggplot(aes(x = extraction.method, y = phylum, fill = log10(phylum_count))) +
+ggplot(aes(x= factor(extraction.method, level = level_order) , y = phylum, fill = log10(phylum_count))) +
   geom_tile() +
   theme(text = element_text(size=25),
     axis.text.x = element_text(angle  = 90, vjust = 1.0, hjust = 1.0)) +
@@ -148,7 +160,7 @@ ggplot(aes(x = extraction.method, y = phylum, fill = log10(phylum_count))) +
 
 Summarise how many superkingdoms per extraction method
 
-```{r fig.width = 10, fig.height = 11}
+```{r fig.width = 13, fig.height = 22}
 
 #phylum count to proportions
 superkingdom_stringent_2025 <- stringent_ext_exp_2025%>% 
@@ -167,9 +179,12 @@ superkingdom_stringent_2025
 
 #prop plot
 
+
+level_order <- c('FAST DNA', 'MagMAX', 'Three peaks', 'PC','UCP','MagAttract', 'Genomic-tip') #so that the extraction  method order is the same in the plots as it is in the manuscript
+
 superkingdom_stringent_2025 %>% 
   mutate(superkingdom = replace_na(superkingdom, "Unassigned")) %>%
-  ggplot(aes(x = extraction.method, y = prop, fill = superkingdom))   +
+  ggplot(aes(x= factor(extraction.method, level = level_order) , y = prop, fill = superkingdom))   +
     geom_col(position = position_dodge()) +
     geom_text(aes(label = sprintf("%0.2f", prop)), position = position_dodge(width = 0.9), vjust = -0.25, size =3) +
     labs(x="DNA extraction method", y="Proportion", 
@@ -179,18 +194,20 @@ superkingdom_stringent_2025 %>%
     facet_wrap(~ superkingdom + read.length.cat, ncol = 3, scales = "free_y")
 
 #count plot
-my_colours <- RColorBrewer::brewer.pal(5, "RdYlBu")
+
 superkingdom_stringent_2025 %>% 
   mutate(superkingdom = replace_na(superkingdom, "Unassigned")) %>%
-  ggplot(aes(x = extraction.method, y = superkingdom_count, fill = superkingdom))   +
+  ggplot(aes(x= factor(extraction.method, level = level_order) , y = superkingdom_count, fill = superkingdom))   +
     geom_col(position = position_dodge()) +
     #geom_text(aes(label = sprintf("%i", superkingdom_count)), angle = 90, size =3,) +
-    geom_text(aes(label = sprintf("%i", superkingdom_count)), position = position_dodge(width = 0.9), vjust = -0.25, size =3) +
+    geom_text(aes(label = sprintf("%i", superkingdom_count)), position = position_dodge(width = 0.9), vjust = -0.25, size =5) +
     labs(x="DNA extraction method", y="Count", 
         title="Distribution of superkingdoms present per extraction method") +
-  scale_fill_manual(values =my_colours) +
+  scale_fill_manual(values=c("#FDAE61", "#FFFFBF" ,"#ABD9E9", "#2C7BB6")) + #manually putting in colours here, these are all the aplletes in the "RdYlBu" pallette, minus the first colour (red) as there are no archae in this plot and i want the colours to correspond to the same superkingdom as in the loose version of this plot above.
    # scale_color_manual(values=c("#d73027","#fdae61","#ffffbf","#abd9e9", "#4575b4")) + # Change fill & color
-    theme(axis.text.x = element_text(angle  = 90, vjust = 0.5, hjust = 1)) +
+    theme(axis.text.x = element_text(angle  = 90, vjust = 0.5, hjust = 1, size = 20)) +
+   theme(axis.text.y = element_text(size = 20)) +
+  theme(text=element_text(size=20)) +
     facet_grid(cols = vars(read.length.cat), rows = vars(superkingdom), scales = "free_y")
 
 ```
@@ -220,6 +237,8 @@ stringent_ext_exp_2025_bac <- stringent_ext_exp_2025%>%
 #display.brewer.all(colorblindFriendly = TRUE) gives you codes for all the colour blind friendly colour templates
 stringent_ext_exp_2025_bac
   
+
+level_order <- c('FAST DNA', 'MagMAX', 'Three peaks', 'PC','UCP','MagAttract', 'Genomic-tip') #so that the extraction  method order is the same in the plots as it is in the manuscript
  # mutate(prop =prop.table(phylum_count)) %>%
 #  arrange(extraction.method, desc(prop)) %>%
  #   slice(1:10) 
@@ -230,7 +249,7 @@ stringent_ext_exp_2025_bac %>%
  # filter(prop > 0.002) %>% #filter to phyla that are present at least 0.2% in the data
   #mutate(phylum = if_else(prop < 0.002, "Other", phylum)) %>%#if the proporion of the phyla is less than 0.2%, then put all these phyla as 'other'\
   mutate(phylum = if_else(prop < 0.02, "Other", phylum)) %>% #AFTER FILTERING FOR UNIQUE TAXA ID, im now changing the other phyla proportion to 0.02, becuase a lot more will be represented on the graph if i left it at 0.002
-  ggplot(aes(x=extraction.method,y=prop, fill=phylum)) +
+  ggplot(aes(x= factor(extraction.method, level = level_order) ,y=prop, fill=phylum)) +
     geom_col() +
    # ylim(1,0) +
   ylim(0,1) + #26.4.24 flipping this back to 0 to 1 becuase its more interpretable now
@@ -255,13 +274,16 @@ packageVersion("ggplot2")
 library("RColorBrewer") 
 packageVersion("RColorBrewer")
 
+
+level_order <- c('FAST DNA', 'MagMAX', 'Three peaks', 'PC','UCP','MagAttract', 'Genomic-tip') #so that the extraction  method order is the same in the plots as it is in the manuscript
+
 stringent_ext_exp_2025 %>%
   filter(superkingdom == "Bacteria") %>%
   group_by(phylum, extraction.method) %>%
   summarise(phylum_count = n()) %>%
   arrange(desc(phylum_count)) %>%
   top_n(10, phylum_count) %>%
-ggplot(aes(x = extraction.method, y = phylum, fill = log10(phylum_count))) +
+ggplot(aes(x= factor(extraction.method, level = level_order) , y = phylum, fill = log10(phylum_count))) +
   geom_tile() +
   theme(text = element_text(size=25),
     axis.text.x = element_text(angle  = 90, vjust = 1.0, hjust = 1.0)) +
