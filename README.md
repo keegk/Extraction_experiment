@@ -1,4 +1,4 @@
-# Extraction_experiment
+# Extraction_experiment Background
 This is the pipeline for analysing my MinION 'Extraction experiment' samples. 
 
 Kit used: SQK-RBK004 (7 barcodes utilised).
@@ -47,6 +47,16 @@ To convert these clean.fastq to clean.fasta, I simply use the package seqtk (con
 
 Done using blast_ncbi_outfmt7.sh with database set to NCBI nt database (a mirror nt database on the HPCC Crop Diversity)
 
-**Step 5** Parsing the concatenated blast text files for loading in R.
+**Step 5**: Parse the blast text file per barcode into R
 
 Done using parsefilter_blasttable.R run in parse_into_R.sh script.
+
+**Step 6**: Filter out any potential incorrect barcodes and add fully taxonomy to reads
+
+In the notebook "taxonomizr_blast_tidied_2025.Rmd", each barcodes parsed blast text file is loaded into R. For each barcode, any reads detected in that barcodes summary seq file (see Step 1.1 above) that were assigned to the wrong barcode are filtered out of the blast text file. The seven blast text files (one per extraction method) are then merged into a final dataset (combined_blast) and using the Taxonomizr package
+v 0.10.6, the reads in combined_blast are assigned full taxonomy classification (from superkingdom to species) based on the subject taxonomic ID each read aligned to.
+
+**Step 7**: Further filtering of blast reads in R
+
+
+
