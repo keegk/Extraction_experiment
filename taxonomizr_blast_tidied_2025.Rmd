@@ -8,22 +8,8 @@ library(tidyverse)
 library(stringr)
 ```
 
-Barcode 1 before splitting:
 
-```{r}
-#install.packages("assertthat")
-#library(assertthat)
-#setwd("C:/Users/keegk/OneDrive - moredungroup/Karen Keegan/Nanopore/SQKRBK004/Extraction_experiment_run_22.2.23")   
-barcode_0.txt <- read.table("parsed_extexp2025_bar1_blast.txt", sep=",", header = TRUE)
-barcode_0.txt[1774, ]
-barcode_0.txt[1775, ]
-View(barcode_0.txt)
-grep(";", barcode_0.txt$subject.sci.names) 
-```
-
-
-
-Barcode 1 after splitting:
+Barcode 1:
 
 ```{r}
  
@@ -32,17 +18,31 @@ barcode_1.txt <- read.table("parsed_extexp2025_bar1_blast.txt", sep=",", header 
 barcode_1.1 <- barcode_1.txt %>%
    separate_rows(subject.sci.names, subject.tax.ids, sep = ";")
 
-
-barcode_1.1[1774, ]
-barcode_1.1[1775, ]
 grep(";", barcode_1.1$subject.sci.names) 
-
 
 extraction.method <- c("fast_dna")
 barcode_1.1$extraction.method <- extraction.method
 
 
 barcode_1.1$subject.tax.ids <- as.character(barcode_1.1$subject.tax.ids) # for some reason the bind_rows function below is throwing up an error that some of the subject.tax.id columns are chracters and others are integers across all the barcode text files, so setting every barcodes column to character before merging.
+
+#from the summary sequencing file QC analysis (notebook "<extraction method>_summary_seq.Rmd - there is a unique notebook for each extraction method), I noticed that there were incorrect barcodes (not many across all the extraction methods/barcode summary seq files) mixed in with the barcode of interest. I filtered these out when doing the read QC (no. of reads, max read length etc), but I should also insure that they are being removed in the taxonomy stage too. Now the blast text files in this notebook do not have info on the barcode - i add this info in myself, so theres no way for me to scan the blast text file to find reads assigned to a barcode that shouldn't be there. Instead im going to screen the blast dataframe for read ID's of the incorrect barcodes in the summary seq files and essentially remove these read ID's from the blast text files.
+
+#i have written code in the <extraction method>_summary_seq.Rmd that has extracted the read ID's we want to remove per barcode, so I am just loading these in here but you can go back into the original notebook to see the full code for this.
+
+load("extexp2025_barcode1_remove_reads") #this is a list of read ID's taken from the summary seq file for barcode 1, that were from incorrect barcoodes (barcode/tag switching potentially). These may have already been removed based on the filtering criteria in BLAST, but for completeness, below is code to remove these read ID's from the blast text file for this barcode:
+
+#need to change the name of the column in extexp2025_barcode1_remove_reads from read_id to query.acc (they are the same thing) so we can antijoin these two dataframes using query.acc as the linker column:
+
+extexp2025_barcode1_remove_reads <- rename(extexp2025_barcode1_remove_reads, query.acc = read_id)
+
+barcode_1.2 <- barcode_1.1 %>% anti_join(extexp2025_barcode1_remove_reads) #this says, join these two dataframes, but remove any query.acc variables in extexp2025_barcode1_remove_reads from barcode_1.1 
+
+#testing whether the anti join code works by grabbing read ids that ARE in the blast text file, running antijoin code and seeing if they are removed:
+
+known_reads <- barcode_1.2 %>% #manually looking at dataframe and grabbing first two reads
+              filter(query.acc %in% c("efb2f860-1b1c-4afd-ad00-5803a75ad0fa", "fba2901a-3500-4361-8e46-ef1eadbdbf5e"))
+barcode_1_removal_test <- barcode_1.1 %>% anti_join(known_reads) #confirms antijoin code works, as this dataset has 5 reads removed, which correspond to the number of reads in known_reads dataset (fb2f860-1b1c-4afd-ad00-5803a75ad0fa has one alignment, fba2901a-3500-4361-8e46-ef1eadbdbf5e has 4 alignments)
 ```
 
 Barcode 2
@@ -59,6 +59,14 @@ barcode_2.1$extraction.method <- extraction.method
 
 
 barcode_2.1$subject.tax.ids <- as.character(barcode_2.1$subject.tax.ids) # for some reason the bind_rows function below is throwing up an error that some of the subject.tax.id columns are chracters and others are integers across all the barcode text files, so setting every barcodes column to character before merging.
+
+load("extexp2025_barcode2_remove_reads") #this is a list of read ID's taken from the summary seq file for barcode 1, that were from incorrect barcoodes (barcode/tag switching potentially). These may have already been removed based on the filtering criteria in BLAST, but for completeness, below is code to remove these read ID's from the blast text file for this barcode:
+
+#need to change the name of the column in extexp2025_barcode1_remove_reads from read_id to query.acc (they are the same thing) so we can antijoin these two dataframes using query.acc as the linker column:
+
+extexp2025_barcode2_remove_reads <- rename(extexp2025_barcode2_remove_reads, query.acc = read_id)
+
+barcode_2.2 <- barcode_2.1 %>% anti_join(extexp2025_barcode2_remove_reads) #this says, join these two dataframes, but remove any query.acc variables in extexp2025_barcodeX_remove_reads from barcode_X.X 
 
 ```
 
@@ -77,6 +85,14 @@ barcode_3.1$extraction.method <- extraction.method
 
 barcode_3.1$subject.tax.ids <- as.character(barcode_3.1$subject.tax.ids) # for some reason the bind_rows function below is throwing up an error that some of the subject.tax.id columns are chracters and others are integers across all the barcode text files, so setting every barcodes column to character before merging.
 
+load("extexp2025_barcode3_remove_reads") #this is a list of read ID's taken from the summary seq file for barcode 1, that were from incorrect barcoodes (barcode/tag switching potentially). These may have already been removed based on the filtering criteria in BLAST, but for completeness, below is code to remove these read ID's from the blast text file for this barcode:
+
+#need to change the name of the column in extexp2025_barcode1_remove_reads from read_id to query.acc (they are the same thing) so we can antijoin these two dataframes using query.acc as the linker column:
+
+extexp2025_barcode3_remove_reads <- rename(extexp2025_barcode3_remove_reads, query.acc = read_id)
+
+barcode_3.2 <- barcode_3.1 %>% anti_join(extexp2025_barcode3_remove_reads) #this says, join these two dataframes, but remove any query.acc variables in extexp2025_barcodeX_remove_reads from barcode_X.X 
+
 ```
 
 Barcode 4
@@ -94,6 +110,15 @@ barcode_4.1$extraction.method <- extraction.method
 
 
 barcode_4.1$subject.tax.ids <- as.character(barcode_4.1$subject.tax.ids) # for some reason the bind_rows function below is throwing up an error that some of the subject.tax.id columns are chracters and others are integers across all the barcode text files, so setting every barcodes column to character before merging.
+
+
+load("extexp2025_barcode4_remove_reads") #this is a list of read ID's taken from the summary seq file for barcode 1, that were from incorrect barcoodes (barcode/tag switching potentially). These may have already been removed based on the filtering criteria in BLAST, but for completeness, below is code to remove these read ID's from the blast text file for this barcode:
+
+#need to change the name of the column in extexp2025_barcode1_remove_reads from read_id to query.acc (they are the same thing) so we can antijoin these two dataframes using query.acc as the linker column:
+
+extexp2025_barcode4_remove_reads <- rename(extexp2025_barcode4_remove_reads, query.acc = read_id)
+
+barcode_4.2 <- barcode_4.1 %>% anti_join(extexp2025_barcode4_remove_reads) #this says, join these two dataframes, but remove any query.acc variables in extexp2025_barcodeX_remove_reads from barcode_X.X 
 ```
 
 Barcode 5
@@ -110,6 +135,14 @@ barcode_5.1$extraction.method <- extraction.method
 
 
 barcode_5.1$subject.tax.ids <- as.character(barcode_5.1$subject.tax.ids) # for some reason the bind_rows function below is throwing up an error that some of the subject.tax.id columns are chracters and others are integers across all the barcode text files, so setting every barcodes column to character before merging.
+
+load("extexp2025_barcode5_remove_reads") #this is a list of read ID's taken from the summary seq file for barcode 1, that were from incorrect barcoodes (barcode/tag switching potentially). These may have already been removed based on the filtering criteria in BLAST, but for completeness, below is code to remove these read ID's from the blast text file for this barcode:
+
+#need to change the name of the column in extexp2025_barcode1_remove_reads from read_id to query.acc (they are the same thing) so we can antijoin these two dataframes using query.acc as the linker column:
+
+extexp2025_barcode5_remove_reads <- rename(extexp2025_barcode5_remove_reads, query.acc = read_id)
+
+barcode_5.2 <- barcode_5.1 %>% anti_join(extexp2025_barcode5_remove_reads) #this says, join these two dataframes, but remove any query.acc variables in extexp2025_barcodeX_remove_reads from barcode_X.X 
 ```
 
 Barcode 6
@@ -126,6 +159,15 @@ barcode_6.1$extraction.method <- extraction.method
 
 
 barcode_6.1$subject.tax.ids <- as.character(barcode_6.1$subject.tax.ids) # for some reason the bind_rows function below is throwing up an error that some of the subject.tax.id columns are chracters and others are integers across all the barcode text files, so setting every barcodes column to character before merging.
+
+
+load("extexp2025_barcode6_remove_reads") #this is a list of read ID's taken from the summary seq file for barcode 1, that were from incorrect barcoodes (barcode/tag switching potentially). These may have already been removed based on the filtering criteria in BLAST, but for completeness, below is code to remove these read ID's from the blast text file for this barcode:
+
+#need to change the name of the column in extexp2025_barcode1_remove_reads from read_id to query.acc (they are the same thing) so we can antijoin these two dataframes using query.acc as the linker column:
+
+extexp2025_barcode6_remove_reads <- rename(extexp2025_barcode6_remove_reads, query.acc = read_id)
+
+barcode_6.2 <- barcode_6.1 %>% anti_join(extexp2025_barcode6_remove_reads) #this says, join these two dataframes, but remove any query.acc variables in extexp2025_barcodeX_remove_reads from barcode_X.X 
 ```
 
 Barcode 7
@@ -141,6 +183,15 @@ extraction.method <- c("Genomic_tip")
 barcode_7.1$extraction.method <- extraction.method
 
 barcode_7.1$subject.tax.ids <- as.character(barcode_7.1$subject.tax.ids) # for some reason the bind_rows function below is throwing up an error that some of the subject.tax.id columns are chracters and others are integers across all the barcode text files, so setting every barcodes column to character before merging.
+
+
+load("extexp2025_barcode7_remove_reads") #this is a list of read ID's taken from the summary seq file for barcode 1, that were from incorrect barcoodes (barcode/tag switching potentially). These may have already been removed based on the filtering criteria in BLAST, but for completeness, below is code to remove these read ID's from the blast text file for this barcode:
+
+#need to change the name of the column in extexp2025_barcode1_remove_reads from read_id to query.acc (they are the same thing) so we can antijoin these two dataframes using query.acc as the linker column:
+
+extexp2025_barcode7_remove_reads <- rename(extexp2025_barcode7_remove_reads, query.acc = read_id)
+
+barcode_7.2 <- barcode_7.1 %>% anti_join(extexp2025_barcode7_remove_reads) #this says, join these two dataframes, but remove any query.acc variables in extexp2025_barcodeX_remove_reads from barcode_X.X 
 
 ```
 No merging all dataframes using tidyverse bind_rows
