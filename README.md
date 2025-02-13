@@ -63,6 +63,13 @@ Using the notebook "loose_stringent_filtering.Rmd", the dataframe merged_with_ta
 
 ![filtering_flow_chart](https://github.com/user-attachments/assets/7e24707f-eb6e-4c1c-837c-6612e9ccc52b)
 
+**Step 8**: QC and taxa info for manuscript models
+
+After the MagAttract method was chosen as the DNA extraction method of choice, 3 additional Nanopore runs were completed with N = 60 samples, and the read QC and taxa results of samples in these runs were used as input into a set of models looking at the effect of sample precipitation, DNA concentraion and volume of sample used in Magattract DNA extraction on read QC/taxa. These runs and models were additional tests to insure MagAttract model still produced quality data on a wider range of samples.
+
+The R notebook "sum_seq_metrics_model2025" uses information from the summary sequencing files of each of these runs (generated using Guppy) to give data on the number of reads, number of bases and number of reads passing the Qscore filtering, variables which will be used in subsequent models evaluating the MagAttract method and modifications to the method.
+
+
 **Results**
 
 *Superkingdom counts/proportions per extraction method, bacterial phyla proportions and heatmap per extraction method**
