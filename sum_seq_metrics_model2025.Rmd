@@ -18,16 +18,24 @@ opts_knit$set(root.dir = "G:/Nanopore/SQKRBK004/Extraction_experiment_run_22.2.2
 Next, lets load in the summary sequencing files for each run included in the model (3 RUNS). Note I use guupy summary seq files, not dorado, as dorado loses lots of info (no of bases, passed reads etc) that I need for the model
 
 ```{r}
-opts_knit$set(root.dir = "G:/Nanopore/SQKRBK004/Extraction_experiment_run_22.2.23/Extraction_experiment")
+
 
 run1_sequencing_summary <- read_delim("guppy_run1_sum_seq.txt")
 
+run1_sequencing_summary<- save(run1_sequencing_summary, file = "run1_sequencing_summary")
+load("run1_sequencing_summary")
 
 run2_sequencing_summary <- read_delim("guppy_run2_sequencing_summary.txt") #run2
 
+run2_sequencing_summary<- save(run2_sequencing_summary, file = "run2_sequencing_summary")
+load("run2_sequencing_summary")
+
+
+
 run3_sequencing_summary <- read_delim("guppy_run3_sum_seq.txt") #run3
 
-
+run3_sequencing_summary<- save(run3_sequencing_summary, file = "run3_sequencing_summary")
+load("run3_sequencing_summary")
 
 #merged_summary_seq <- full_join(x =sequencing_summary, y = run111_sequencing_summary, by ="barcode") #lets not try merge the two full summary seq files, the merge is too large. instead lets get the number of reads (lines) of each barcode below as we did for the first summary seq file and then les merge this smaller dataframe...we dont need all the info int he summary seq file, just the number of reads (rows) assigned to each barcode..see line 11187 for this code
 
@@ -47,14 +55,46 @@ run1_sequencing_summary_clean <- run1_sequencing_summary %>%
                       filter(barcode_score >= 60) %>% # #set to 60, as this was the cut-off score of barcodes kept in extraction exp summary sequencing files when we removed any incorrect barcodes or unclassififed data. Still unclassified barcodes when set to >= 60, so further remove unclassified reads:
                       filter(!barcode_arrangement == "unclassified")
 
+##extracting reads with barcode score less than 60 and any unclassified reads,  to remove from the blast text file for this run:
+
+run1_sequencing_summary_reads_to_remove<- run1_sequencing_summary %>% 
+                      filter(!barcode_score >= 60) %>% # #set to 60, as this was the cut-off score of barcodes kept in extraction exp summary sequencing files when we removed any incorrect barcodes or unclassififed data. Still unclassified barcodes when set to >= 60, so further remove unclassified reads:
+                      filter(barcode_arrangement == "unclassified") 
+
+run1_sequencing_summary_reads_to_remove<- save(run1_sequencing_summary_reads_to_remove, file = "run1_sequencing_summary_reads_to_remove")
+load("run1_sequencing_summary_reads_to_remove")
+
+
+#run2
 run2_sequencing_summary_clean <- run2_sequencing_summary %>%
                       filter(barcode_score >= 60) %>%
                       filter(!barcode_arrangement == "unclassified")
 
+
+##extracting reads with barcode score less than 60 and any unclassified reads,  to remove from the blast text file for this run:
+
+run2_sequencing_summary_reads_to_remove<- run2_sequencing_summary %>% 
+                      filter(!barcode_score >= 60) %>% # #set to 60, as this was the cut-off score of barcodes kept in extraction exp summary sequencing files when we removed any incorrect barcodes or unclassififed data. Still unclassified barcodes when set to >= 60, so further remove unclassified reads:
+                      filter(barcode_arrangement == "unclassified")
+
+run2_sequencing_summary_reads_to_remove<- save(run2_sequencing_summary_reads_to_remove, file = "run2_sequencing_summary_reads_to_remove")
+load("run2_sequencing_summary_reads_to_remove")
+
+
+#run3
 run3_sequencing_summary_clean <- run3_sequencing_summary%>%
                       filter(barcode_score >= 60) %>%
                       filter(!barcode_arrangement == "unclassified")
 
+
+##extracting reads with barcode score less than 60 and any unclassified reads,  to remove from the blast text file for this run:
+
+run3_sequencing_summary_reads_to_remove<- run3_sequencing_summary %>% 
+                      filter(!barcode_score >= 60) %>% # #set to 60, as this was the cut-off score of barcodes kept in extraction exp summary sequencing files when we removed any incorrect barcodes or unclassififed data. Still unclassified barcodes when set to >= 60, so further remove unclassified reads:
+                      filter(barcode_arrangement == "unclassified")
+
+run3_sequencing_summary_reads_to_remove<- save(run3_sequencing_summary_reads_to_remove, file = "run3_sequencing_summary_reads_to_remove")
+load("run3_sequencing_summary_reads_to_remove")
 
 
 
