@@ -1,0 +1,1156 @@
+**1:Loading packages**
+
+First, lets load in any required packages:
+
+```{r setup}
+library(tidyverse)
+packageVersion("tidyverse")
+#install.packages("RColorBrewer")
+library(RColorBrewer)
+require("knitr")
+opts_knit$set(root.dir = "G:/Nanopore/SQKRBK004/Extraction_experiment_run_22.2.23/Extraction_experiment") #having to use my harddrive as project location because file sizes (the summary seq files) are too large for my OneDrive
+#library(stringr)
+#library(scales) #needed for label_percent function
+```
+
+\*\*111:Summary sequencing file\*
+
+Next, lets load in the summary sequencing files for each run included in the model (3 RUNS). Note I use guupy summary seq files, not dorado, as dorado loses lots of info (no of bases, passed reads etc) that I need for the model
+
+```{r}
+opts_knit$set(root.dir = "G:/Nanopore/SQKRBK004/Extraction_experiment_run_22.2.23/Extraction_experiment")
+
+run1_sequencing_summary <- read_delim("guppy_run1_sum_seq.txt")
+
+
+run2_sequencing_summary <- read_delim("guppy_run2_sequencing_summary.txt") #run2
+
+run3_sequencing_summary <- read_delim("guppy_run3_sum_seq.txt") #run3
+
+
+
+#merged_summary_seq <- full_join(x =sequencing_summary, y = run111_sequencing_summary, by ="barcode") #lets not try merge the two full summary seq files, the merge is too large. instead lets get the number of reads (lines) of each barcode below as we did for the first summary seq file and then les merge this smaller dataframe...we dont need all the info int he summary seq file, just the number of reads (rows) assigned to each barcode..see line 11187 for this code
+
+
+
+```
+
+
+
+Now, lets filter out from these sequencing summary files, any incorrect/unclassified barcodes (barcode switching). We cant actually do this because 1) this summary sequencing file contains all the barcodes, not one, so we can't filter out any that shouldn't be there, 111) I thought maybe we can filter any barcodes that have a barcode score less than 60 (this is what happened when we filtered out incorrect barcodes from the indidivudal summary seq files in the extraction experiement run), however these summary seq files have been generated from Dorado not Guppy (guppy used to dfdemultiplex in dna extraction exp run), and the output in the sum seq file is different - there is only a barcode column, no barcode scoring column or any other barcode related column. However, what we can do is filter out unclassified reads from dorado sum seq, to get a better idea of number of reads actually being assigned to barcodes:
+
+```{r}
+
+#run1
+
+run1_sequencing_summary_clean <- run1_sequencing_summary %>%
+                      filter(barcode_score >= 60) %>% # #set to 60, as this was the cut-off score of barcodes kept in extraction exp summary sequencing files when we removed any incorrect barcodes or unclassififed data. Still unclassified barcodes when set to >= 60, so further remove unclassified reads:
+                      filter(!barcode_arrangement == "unclassified")
+
+run2_sequencing_summary_clean <- run2_sequencing_summary %>%
+                      filter(barcode_score >= 60) %>%
+                      filter(!barcode_arrangement == "unclassified")
+
+run3_sequencing_summary_clean <- run3_sequencing_summary%>%
+                      filter(barcode_score >= 60) %>%
+                      filter(!barcode_arrangement == "unclassified")
+
+
+
+
+```
+
+#How many counts of reads, no. bases and passed reads per barcode in run 1?
+
+```{r}
+
+
+#bar1
+
+bar1 <- run1_sequencing_summary_clean %>%
+        filter(barcode_arrangement == "barcode01")
+
+nrow_bar1 <- nrow(bar1)
+
+sum_bar1 <- sum(bar1$sequence_length_template)
+
+bar1_passes <- run1_sequencing_summary_clean %>%
+        filter(barcode_arrangement == "barcode01") %>%
+        filter(passes_filtering == TRUE)%>%
+        nrow
+
+#bar2
+
+bar2 <- run1_sequencing_summary_clean %>%
+        filter(barcode_arrangement == "barcode02")
+
+nrow_bar2 <- nrow(bar2)
+
+sum_bar2 <- sum(bar2$sequence_length_template)
+
+bar2_passes <- run1_sequencing_summary_clean %>%
+        filter(barcode_arrangement == "barcode02") %>%
+        filter(passes_filtering == TRUE) %>%
+        nrow
+
+#bar3
+
+bar3 <- run1_sequencing_summary_clean %>%
+        filter(barcode_arrangement == "barcode03")
+
+nrow_bar3 <- nrow(bar3)
+
+sum_bar3 <- sum(bar3$sequence_length_template)
+
+bar3_passes <- run1_sequencing_summary_clean %>%
+        filter(barcode_arrangement == "barcode03") %>%
+        filter(passes_filtering == TRUE) %>%
+        nrow
+
+#bar4
+
+bar4 <- run1_sequencing_summary_clean %>%
+        filter(barcode_arrangement == "barcode04")
+
+nrow_bar4 <- nrow(bar4)
+
+sum_bar4 <- sum(bar4$sequence_length_template)
+
+bar4_passes <- run1_sequencing_summary_clean %>%
+        filter(barcode_arrangement == "barcode04") %>%
+        filter(passes_filtering == TRUE) %>%
+        nrow
+
+#bar5
+
+bar5 <- run1_sequencing_summary_clean %>%
+        filter(barcode_arrangement == "barcode05")
+
+nrow_bar5 <- nrow(bar5)
+
+sum_bar5 <- sum(bar5$sequence_length_template)
+
+bar5_passes <- run1_sequencing_summary_clean %>%
+        filter(barcode_arrangement == "barcode05") %>%
+        filter(passes_filtering == TRUE) %>%
+        nrow
+
+#bar6
+
+bar6 <- run1_sequencing_summary_clean %>%
+        filter(barcode_arrangement == "barcode06")
+
+nrow_bar6 <- nrow(bar6)
+
+sum_bar6 <- sum(bar6$sequence_length_template)
+
+bar6_passes <- run1_sequencing_summary_clean %>%
+        filter(barcode_arrangement == "barcode06") %>%
+        filter(passes_filtering == TRUE) %>%
+        nrow
+
+#bar7
+
+bar7 <- run1_sequencing_summary_clean %>%
+        filter(barcode_arrangement == "barcode07")
+
+nrow_bar7 <- nrow(bar7)
+
+sum_bar7 <- sum(bar7$sequence_length_template)
+
+bar7_passes <- run1_sequencing_summary_clean %>%
+        filter(barcode_arrangement == "barcode07") %>%
+        filter(passes_filtering == TRUE) %>%
+        nrow
+
+#bar8
+
+bar8 <- run1_sequencing_summary_clean %>%
+        filter(barcode_arrangement == "barcode08")
+
+nrow_bar8 <- nrow(bar8)
+
+sum_bar8 <- sum(bar8$sequence_length_template)
+
+bar8_passes <- run1_sequencing_summary_clean %>%
+        filter(barcode_arrangement == "barcode08") %>%
+        filter(passes_filtering == TRUE) %>%
+        nrow
+
+#bar9
+
+bar9 <- run1_sequencing_summary_clean %>%
+        filter(barcode_arrangement == "barcode09")
+
+nrow_bar9 <- nrow(bar9)
+
+sum_bar9 <- sum(bar9$sequence_length_template)
+
+bar9_passes <- run1_sequencing_summary_clean %>%
+        filter(barcode_arrangement == "barcode09") %>%
+        filter(passes_filtering == TRUE) %>%
+        nrow
+
+#bar10
+
+bar10 <- run1_sequencing_summary_clean %>%
+        filter(barcode_arrangement == "barcode10")
+
+nrow_bar10 <- nrow(bar10)
+
+sum_bar10 <- sum(bar10$sequence_length_template)
+
+bar10_passes <- run1_sequencing_summary_clean %>%
+        filter(barcode_arrangement == "barcode10") %>%
+        filter(passes_filtering == TRUE) %>%
+        nrow
+
+#bar11
+
+bar11 <- run1_sequencing_summary_clean %>%
+        filter(barcode_arrangement == "barcode11")
+
+nrow_bar11 <- nrow(bar11)
+
+sum_bar11 <- sum(bar11$sequence_length_template)
+
+bar11_passes <- run1_sequencing_summary_clean %>%
+        filter(barcode_arrangement == "barcode11") %>%
+        filter(passes_filtering == TRUE) %>%
+        nrow
+
+#bar12
+
+bar12 <- run1_sequencing_summary_clean %>%
+        filter(barcode_arrangement == "barcode12")
+
+nrow_bar12 <- nrow(bar12)
+
+sum_bar12 <- sum(bar12$sequence_length_template)
+
+bar12_passes <- run1_sequencing_summary_clean %>%
+        filter(barcode_arrangement == "barcode12") %>%
+        filter(passes_filtering == TRUE) %>%
+        nrow
+
+#bar13
+
+bar13 <- run1_sequencing_summary_clean %>%
+        filter(barcode_arrangement == "barcode13")
+
+nrow_bar13 <- nrow(bar13)
+
+sum_bar13 <- sum(bar13$sequence_length_template)
+
+bar13_passes <- run1_sequencing_summary_clean %>%
+        filter(barcode_arrangement == "barcode13") %>%
+        filter(passes_filtering == TRUE) %>%
+        nrow
+
+#bar14
+
+bar14 <- run1_sequencing_summary_clean %>%
+        filter(barcode_arrangement == "barcode14")
+
+nrow_bar14 <- nrow(bar14)
+
+sum_bar14<- sum(bar14$sequence_length_template)
+
+bar14_passes <- run1_sequencing_summary_clean %>%
+        filter(barcode_arrangement == "barcode14") %>%
+        filter(passes_filtering == TRUE) %>%
+        nrow
+
+#bar15
+
+bar15 <- run1_sequencing_summary_clean %>%
+        filter(barcode_arrangement == "barcode15")
+
+nrow_bar15 <- nrow(bar15)
+
+sum_bar15 <- sum(bar15$sequence_length_template)
+
+bar15_passes <- run1_sequencing_summary_clean %>%
+        filter(barcode_arrangement == "barcode15") %>%
+        filter(passes_filtering == TRUE) %>%
+        nrow
+
+#bar16
+
+bar16 <- run1_sequencing_summary_clean %>%
+        filter(barcode_arrangement == "barcode16")
+
+nrow_bar16 <- nrow(bar16)
+
+sum_bar16 <- sum(bar16$sequence_length_template)
+
+bar16_passes <- run1_sequencing_summary_clean %>%
+        filter(barcode_arrangement == "barcode16") %>%
+        filter(passes_filtering == TRUE) %>%
+        nrow
+
+#bar17
+
+bar17 <- run1_sequencing_summary_clean %>%
+        filter(barcode_arrangement == "barcode17")
+
+nrow_bar17 <- nrow(bar17)
+
+sum_bar17 <- sum(bar17$sequence_length_template)
+
+bar17_passes <- run1_sequencing_summary_clean %>%
+        filter(barcode_arrangement == "barcode17") %>%
+        filter(passes_filtering == TRUE) %>%
+        nrow
+
+#bar18
+
+bar18 <- run1_sequencing_summary_clean %>%
+        filter(barcode_arrangement == "barcode18")
+
+nrow_bar18<- nrow(bar18)
+
+sum_bar18 <- sum(bar18$sequence_length_template)
+
+bar18_passes <- run1_sequencing_summary_clean %>%
+        filter(barcode_arrangement == "barcode18") %>%
+        filter(passes_filtering == TRUE) %>%
+        nrow
+
+#bar19
+
+bar19 <- run1_sequencing_summary_clean %>%
+        filter(barcode_arrangement == "barcode19")
+
+nrow_bar19 <- nrow(bar19)
+
+sum_bar19 <- sum(bar19$sequence_length_template)
+
+bar19_passes <- run1_sequencing_summary_clean %>%
+        filter(barcode_arrangement == "barcode19") %>%
+        filter(passes_filtering == TRUE) %>%
+        nrow
+
+#bar20
+
+bar20 <- run1_sequencing_summary_clean %>%
+        filter(barcode_arrangement == "barcode20")
+
+nrow_bar20 <- nrow(bar20)
+
+sum_bar20 <- sum(bar20$sequence_length_template)
+
+bar20_passes <- run1_sequencing_summary_clean %>%
+        filter(barcode_arrangement == "barcode20") %>%
+        filter(passes_filtering == TRUE) %>%
+        nrow
+
+#bar21
+
+bar21 <- run1_sequencing_summary_clean %>%
+        filter(barcode_arrangement == "barcode21")
+
+nrow_bar21 <- nrow(bar21)
+
+sum_bar21 <- sum(bar21$sequence_length_template)
+
+bar21_passes <- run1_sequencing_summary_clean %>%
+        filter(barcode_arrangement == "barcode21") %>%
+        filter(passes_filtering == TRUE) %>%
+        nrow
+
+#bar22
+
+bar22 <- run1_sequencing_summary_clean %>%
+        filter(barcode_arrangement == "barcode22")
+
+nrow_bar22 <- nrow(bar22)
+
+sum_bar22 <- sum(bar22$sequence_length_template)
+
+bar22_passes <- run1_sequencing_summary_clean %>%
+        filter(barcode_arrangement == "barcode22") %>%
+        filter(passes_filtering == TRUE) %>%
+        nrow
+
+#bar23
+
+bar23 <- run1_sequencing_summary_clean %>%
+        filter(barcode_arrangement == "barcode23")
+
+nrow_bar23 <- nrow(bar23)
+
+sum_bar23 <- sum(bar23$sequence_length_template)
+
+bar23_passes <- run1_sequencing_summary_clean %>%
+        filter(barcode_arrangement == "barcode23") %>%
+        filter(passes_filtering == TRUE) %>%
+        nrow
+
+#bar24
+
+bar24 <- run1_sequencing_summary_clean %>%
+        filter(barcode_arrangement == "barcode24")
+
+nrow_bar24 <- nrow(bar24)
+
+sum_bar24 <- sum(bar24$sequence_length_template)
+
+bar24_passes <- run1_sequencing_summary_clean %>%
+        filter(barcode_arrangement == "barcode24") %>%
+        filter(passes_filtering == TRUE) %>%
+        nrow
+```
+
+
+
+
+
+```{r}
+###DATFRAME run 1
+#create a dataframe to store all this info:
+
+barcode <- c(1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24)
+reads <- c(nrow_bar1,nrow_bar2,nrow_bar3,nrow_bar4,nrow_bar5,nrow_bar6,nrow_bar7,nrow_bar8,nrow_bar9,nrow_bar10,nrow_bar11,nrow_bar12,nrow_bar13,nrow_bar14,nrow_bar15,nrow_bar16,nrow_bar17,nrow_bar18,nrow_bar19,nrow_bar20,nrow_bar21,nrow_bar21,nrow_bar23,nrow_bar24) #vector containing all the reads per barcode
+bases <- c(sum_bar1,sum_bar2,sum_bar3,sum_bar4,sum_bar5,sum_bar6,sum_bar7,sum_bar8,sum_bar9,sum_bar10,sum_bar11,sum_bar12,sum_bar13,sum_bar14,sum_bar15,sum_bar16,sum_bar17,sum_bar18,sum_bar19,sum_bar20,sum_bar21,sum_bar21,sum_bar23,sum_bar24)#vector containing all the bases per barcode
+passes <- c(bar1_passes,bar2_passes,bar3_passes,bar4_passes,bar5_passes,bar6_passes,bar7_passes,bar8_passes,bar9_passes,bar10_passes,bar11_passes,bar12_passes,bar13_passes,bar14_passes,bar15_passes,bar16_passes,bar17_passes,bar18_passes,bar19_passes,bar20_passes,bar21_passes,bar22_passes,bar23_passes,bar24_passes) #vector containing all the passed reads per barcode
+run <- c(1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1)
+
+run1_metrics_for_model <- data.frame(barcode,reads,bases,passes,run)
+print(run1_metrics_for_model)
+
+write.csv(run1_metrics_for_model, "run1_metrics_for_model.csv")
+
+```
+
+
+
+
+
+
+
+
+
+#How many counts of reads, no. bases and passed reads per barcode in run 2?
+
+```{r}
+
+
+#bar1
+
+bar1 <- run2_sequencing_summary_clean %>%
+        filter(barcode_arrangement == "barcode01")
+
+nrow_bar1 <- nrow(bar1)
+
+sum_bar1 <- sum(bar1$sequence_length_template)
+
+bar1_passes <- run2_sequencing_summary_clean %>%
+        filter(barcode_arrangement == "barcode01") %>%
+        filter(passes_filtering == TRUE)%>%
+        nrow
+
+#bar2
+
+bar2 <- run2_sequencing_summary_clean %>%
+        filter(barcode_arrangement == "barcode02")
+
+nrow_bar2 <- nrow(bar2)
+
+sum_bar2 <- sum(bar2$sequence_length_template)
+
+bar2_passes <- run2_sequencing_summary_clean %>%
+        filter(barcode_arrangement == "barcode02") %>%
+        filter(passes_filtering == TRUE) %>%
+        nrow
+
+#bar3
+
+bar3 <- run2_sequencing_summary_clean %>%
+        filter(barcode_arrangement == "barcode03")
+
+nrow_bar3 <- nrow(bar3)
+
+sum_bar3 <- sum(bar3$sequence_length_template)
+
+bar3_passes <- run2_sequencing_summary_clean %>%
+        filter(barcode_arrangement == "barcode03") %>%
+        filter(passes_filtering == TRUE) %>%
+        nrow
+
+#bar4
+
+bar4 <- run2_sequencing_summary_clean %>%
+        filter(barcode_arrangement == "barcode04")
+
+nrow_bar4 <- nrow(bar4)
+
+sum_bar4 <- sum(bar4$sequence_length_template)
+
+bar4_passes <- run2_sequencing_summary_clean %>%
+        filter(barcode_arrangement == "barcode04") %>%
+        filter(passes_filtering == TRUE) %>%
+        nrow
+
+#bar5
+
+bar5 <- run2_sequencing_summary_clean %>%
+        filter(barcode_arrangement == "barcode05")
+
+nrow_bar5 <- nrow(bar5)
+
+sum_bar5 <- sum(bar5$sequence_length_template)
+
+bar5_passes <- run2_sequencing_summary_clean %>%
+        filter(barcode_arrangement == "barcode05") %>%
+        filter(passes_filtering == TRUE) %>%
+        nrow
+
+#bar6
+
+bar6 <- run2_sequencing_summary_clean %>%
+        filter(barcode_arrangement == "barcode06")
+
+nrow_bar6 <- nrow(bar6)
+
+sum_bar6 <- sum(bar6$sequence_length_template)
+
+bar6_passes <- run2_sequencing_summary_clean %>%
+        filter(barcode_arrangement == "barcode06") %>%
+        filter(passes_filtering == TRUE) %>%
+        nrow
+
+#bar7
+
+bar7 <- run2_sequencing_summary_clean %>%
+        filter(barcode_arrangement == "barcode07")
+
+nrow_bar7 <- nrow(bar7)
+
+sum_bar7 <- sum(bar7$sequence_length_template)
+
+bar7_passes <- run2_sequencing_summary_clean %>%
+        filter(barcode_arrangement == "barcode07") %>%
+        filter(passes_filtering == TRUE) %>%
+        nrow
+
+#bar8
+
+bar8 <- run2_sequencing_summary_clean %>%
+        filter(barcode_arrangement == "barcode08")
+
+nrow_bar8 <- nrow(bar8)
+
+sum_bar8 <- sum(bar8$sequence_length_template)
+
+bar8_passes <- run2_sequencing_summary_clean %>%
+        filter(barcode_arrangement == "barcode08") %>%
+        filter(passes_filtering == TRUE) %>%
+        nrow
+
+#bar9
+
+bar9 <- run2_sequencing_summary_clean %>%
+        filter(barcode_arrangement == "barcode09")
+
+nrow_bar9 <- nrow(bar9)
+
+sum_bar9 <- sum(bar9$sequence_length_template)
+
+bar9_passes <- run2_sequencing_summary_clean %>%
+        filter(barcode_arrangement == "barcode09") %>%
+        filter(passes_filtering == TRUE) %>%
+        nrow
+
+#bar10
+
+bar10 <- run2_sequencing_summary_clean %>%
+        filter(barcode_arrangement == "barcode10")
+
+nrow_bar10 <- nrow(bar10)
+
+sum_bar10 <- sum(bar10$sequence_length_template)
+
+bar10_passes <- run2_sequencing_summary_clean %>%
+        filter(barcode_arrangement == "barcode10") %>%
+        filter(passes_filtering == TRUE) %>%
+        nrow
+
+#bar11
+
+bar11 <- run2_sequencing_summary_clean %>%
+        filter(barcode_arrangement == "barcode11")
+
+nrow_bar11 <- nrow(bar11)
+
+sum_bar11 <- sum(bar11$sequence_length_template)
+
+bar11_passes <- run2_sequencing_summary_clean %>%
+        filter(barcode_arrangement == "barcode11") %>%
+        filter(passes_filtering == TRUE) %>%
+        nrow
+
+#bar12
+
+bar12 <- run2_sequencing_summary_clean %>%
+        filter(barcode_arrangement == "barcode12")
+
+nrow_bar12 <- nrow(bar12)
+
+sum_bar12 <- sum(bar12$sequence_length_template)
+
+bar12_passes <- run2_sequencing_summary_clean %>%
+        filter(barcode_arrangement == "barcode12") %>%
+        filter(passes_filtering == TRUE) %>%
+        nrow
+
+#bar13
+
+bar13 <- run2_sequencing_summary_clean %>%
+        filter(barcode_arrangement == "barcode13")
+
+nrow_bar13 <- nrow(bar13)
+
+sum_bar13 <- sum(bar13$sequence_length_template)
+
+bar13_passes <- run2_sequencing_summary_clean %>%
+        filter(barcode_arrangement == "barcode13") %>%
+        filter(passes_filtering == TRUE) %>%
+        nrow
+
+#bar14
+
+bar14 <- run2_sequencing_summary_clean %>%
+        filter(barcode_arrangement == "barcode14")
+
+nrow_bar14 <- nrow(bar14)
+
+sum_bar14<- sum(bar14$sequence_length_template)
+
+bar14_passes <- run2_sequencing_summary_clean %>%
+        filter(barcode_arrangement == "barcode14") %>%
+        filter(passes_filtering == TRUE) %>%
+        nrow
+
+#bar15
+
+bar15 <- run2_sequencing_summary_clean %>%
+        filter(barcode_arrangement == "barcode15")
+
+nrow_bar15 <- nrow(bar15)
+
+sum_bar15 <- sum(bar15$sequence_length_template)
+
+bar15_passes <- run2_sequencing_summary_clean %>%
+        filter(barcode_arrangement == "barcode15") %>%
+        filter(passes_filtering == TRUE) %>%
+        nrow
+
+#bar16
+
+bar16 <- run2_sequencing_summary_clean %>%
+        filter(barcode_arrangement == "barcode16")
+
+nrow_bar16 <- nrow(bar16)
+
+sum_bar16 <- sum(bar16$sequence_length_template)
+
+bar16_passes <- run2_sequencing_summary_clean %>%
+        filter(barcode_arrangement == "barcode16") %>%
+        filter(passes_filtering == TRUE) %>%
+        nrow
+
+#bar17
+
+bar17 <- run2_sequencing_summary_clean %>%
+        filter(barcode_arrangement == "barcode17")
+
+nrow_bar17 <- nrow(bar17)
+
+sum_bar17 <- sum(bar17$sequence_length_template)
+
+bar17_passes <- run2_sequencing_summary_clean %>%
+        filter(barcode_arrangement == "barcode17") %>%
+        filter(passes_filtering == TRUE) %>%
+        nrow
+
+#bar18
+
+bar18 <- run2_sequencing_summary_clean %>%
+        filter(barcode_arrangement == "barcode18")
+
+nrow_bar18<- nrow(bar18)
+
+sum_bar18 <- sum(bar18$sequence_length_template)
+
+bar18_passes <- run2_sequencing_summary_clean %>%
+        filter(barcode_arrangement == "barcode18") %>%
+        filter(passes_filtering == TRUE) %>%
+        nrow
+
+#bar19
+
+bar19 <- run2_sequencing_summary_clean %>%
+        filter(barcode_arrangement == "barcode19")
+
+nrow_bar19 <- nrow(bar19)
+
+sum_bar19 <- sum(bar19$sequence_length_template)
+
+bar19_passes <- run2_sequencing_summary_clean %>%
+        filter(barcode_arrangement == "barcode19") %>%
+        filter(passes_filtering == TRUE) %>%
+        nrow
+
+#bar20
+
+bar20 <- run2_sequencing_summary_clean %>%
+        filter(barcode_arrangement == "barcode20")
+
+nrow_bar20 <- nrow(bar20)
+
+sum_bar20 <- sum(bar20$sequence_length_template)
+
+bar20_passes <- run2_sequencing_summary_clean %>%
+        filter(barcode_arrangement == "barcode20") %>%
+        filter(passes_filtering == TRUE) %>%
+        nrow
+
+#bar21
+
+bar21 <- run2_sequencing_summary_clean %>%
+        filter(barcode_arrangement == "barcode21")
+
+nrow_bar21 <- nrow(bar21)
+
+sum_bar21 <- sum(bar21$sequence_length_template)
+
+bar21_passes <- run2_sequencing_summary_clean %>%
+        filter(barcode_arrangement == "barcode21") %>%
+        filter(passes_filtering == TRUE) %>%
+        nrow
+
+#bar22
+
+bar22 <- run2_sequencing_summary_clean %>%
+        filter(barcode_arrangement == "barcode22")
+
+nrow_bar22 <- nrow(bar22)
+
+sum_bar22 <- sum(bar22$sequence_length_template)
+
+bar22_passes <- run2_sequencing_summary_clean %>%
+        filter(barcode_arrangement == "barcode22") %>%
+        filter(passes_filtering == TRUE) %>%
+        nrow
+
+#bar23
+
+bar23 <- run2_sequencing_summary_clean %>%
+        filter(barcode_arrangement == "barcode23")
+
+nrow_bar23 <- nrow(bar23)
+
+sum_bar23 <- sum(bar23$sequence_length_template)
+
+bar23_passes <- run2_sequencing_summary_clean %>%
+        filter(barcode_arrangement == "barcode23") %>%
+        filter(passes_filtering == TRUE) %>%
+        nrow
+
+#bar24
+
+bar24 <- run2_sequencing_summary_clean %>%
+        filter(barcode_arrangement == "barcode24")
+
+nrow_bar24 <- nrow(bar24)
+
+sum_bar24 <- sum(bar24$sequence_length_template)
+
+bar24_passes <- run2_sequencing_summary_clean %>%
+        filter(barcode_arrangement == "barcode24") %>%
+        filter(passes_filtering == TRUE) %>%
+        nrow
+
+
+```
+
+
+```{r}
+###DATFRAME run 2
+#create a dataframe to store all this info:
+
+barcode <- c(1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24)
+reads <- c(nrow_bar1,nrow_bar2,nrow_bar3,nrow_bar4,nrow_bar5,nrow_bar6,nrow_bar7,nrow_bar8,nrow_bar9,nrow_bar10,nrow_bar11,nrow_bar12,nrow_bar13,nrow_bar14,nrow_bar15,nrow_bar16,nrow_bar17,nrow_bar18,nrow_bar19,nrow_bar20,nrow_bar21,nrow_bar21,nrow_bar23,nrow_bar24) #vector containing all the reads per barcode
+bases <- c(sum_bar1,sum_bar2,sum_bar3,sum_bar4,sum_bar5,sum_bar6,sum_bar7,sum_bar8,sum_bar9,sum_bar10,sum_bar11,sum_bar12,sum_bar13,sum_bar14,sum_bar15,sum_bar16,sum_bar17,sum_bar18,sum_bar19,sum_bar20,sum_bar21,sum_bar21,sum_bar23,sum_bar24)#vector containing all the bases per barcode
+passes <- c(bar1_passes,bar2_passes,bar3_passes,bar4_passes,bar5_passes,bar6_passes,bar7_passes,bar8_passes,bar9_passes,bar10_passes,bar11_passes,bar12_passes,bar13_passes,bar14_passes,bar15_passes,bar16_passes,bar17_passes,bar18_passes,bar19_passes,bar20_passes,bar21_passes,bar22_passes,bar23_passes,bar24_passes) #vector containing all the passed reads per barcode
+run <- c(2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2)
+
+run2_metrics_for_model <- data.frame(barcode,reads,bases,passes,run)
+print(run2_metrics_for_model)
+
+write.csv(run2_metrics_for_model, "run2_metrics_for_model.csv")
+
+```
+
+
+run 3:
+
+```{r}
+
+
+#bar1
+
+bar1 <- run3_sequencing_summary_clean %>%
+        filter(barcode_arrangement == "barcode01")
+
+nrow_bar1 <- nrow(bar1)
+
+sum_bar1 <- sum(bar1$sequence_length_template)
+
+bar1_passes <- run3_sequencing_summary_clean %>%
+        filter(barcode_arrangement == "barcode01") %>%
+        filter(passes_filtering == TRUE)%>%
+        nrow
+
+#bar2
+
+bar2 <- run3_sequencing_summary_clean %>%
+        filter(barcode_arrangement == "barcode02")
+
+nrow_bar2 <- nrow(bar2)
+
+sum_bar2 <- sum(bar2$sequence_length_template)
+
+bar2_passes <- run3_sequencing_summary_clean %>%
+        filter(barcode_arrangement == "barcode02") %>%
+        filter(passes_filtering == TRUE) %>%
+        nrow
+
+#bar3
+
+bar3 <- run3_sequencing_summary_clean %>%
+        filter(barcode_arrangement == "barcode03")
+
+nrow_bar3 <- nrow(bar3)
+
+sum_bar3 <- sum(bar3$sequence_length_template)
+
+bar3_passes <- run3_sequencing_summary_clean %>%
+        filter(barcode_arrangement == "barcode03") %>%
+        filter(passes_filtering == TRUE) %>%
+        nrow
+
+#bar4
+
+bar4 <- run3_sequencing_summary_clean %>%
+        filter(barcode_arrangement == "barcode04")
+
+nrow_bar4 <- nrow(bar4)
+
+sum_bar4 <- sum(bar4$sequence_length_template)
+
+bar4_passes <- run3_sequencing_summary_clean %>%
+        filter(barcode_arrangement == "barcode04") %>%
+        filter(passes_filtering == TRUE) %>%
+        nrow
+
+#bar5
+
+bar5 <- run3_sequencing_summary_clean %>%
+        filter(barcode_arrangement == "barcode05")
+
+nrow_bar5 <- nrow(bar5)
+
+sum_bar5 <- sum(bar5$sequence_length_template)
+
+bar5_passes <- run3_sequencing_summary_clean %>%
+        filter(barcode_arrangement == "barcode05") %>%
+        filter(passes_filtering == TRUE) %>%
+        nrow
+
+#bar6
+
+bar6 <- run3_sequencing_summary_clean %>%
+        filter(barcode_arrangement == "barcode06")
+
+nrow_bar6 <- nrow(bar6)
+
+sum_bar6 <- sum(bar6$sequence_length_template)
+
+bar6_passes <- run3_sequencing_summary_clean %>%
+        filter(barcode_arrangement == "barcode06") %>%
+        filter(passes_filtering == TRUE) %>%
+        nrow
+
+#bar7
+
+bar7 <- run3_sequencing_summary_clean %>%
+        filter(barcode_arrangement == "barcode07")
+
+nrow_bar7 <- nrow(bar7)
+
+sum_bar7 <- sum(bar7$sequence_length_template)
+
+bar7_passes <- run3_sequencing_summary_clean %>%
+        filter(barcode_arrangement == "barcode07") %>%
+        filter(passes_filtering == TRUE) %>%
+        nrow
+
+#bar8
+
+bar8 <- run3_sequencing_summary_clean %>%
+        filter(barcode_arrangement == "barcode08")
+
+nrow_bar8 <- nrow(bar8)
+
+sum_bar8 <- sum(bar8$sequence_length_template)
+
+bar8_passes <- run3_sequencing_summary_clean %>%
+        filter(barcode_arrangement == "barcode08") %>%
+        filter(passes_filtering == TRUE) %>%
+        nrow
+
+#bar9
+
+bar9 <- run3_sequencing_summary_clean %>%
+        filter(barcode_arrangement == "barcode09")
+
+nrow_bar9 <- nrow(bar9)
+
+sum_bar9 <- sum(bar9$sequence_length_template)
+
+bar9_passes <- run3_sequencing_summary_clean %>%
+        filter(barcode_arrangement == "barcode09") %>%
+        filter(passes_filtering == TRUE) %>%
+        nrow
+
+#bar10
+
+bar10 <- run3_sequencing_summary_clean %>%
+        filter(barcode_arrangement == "barcode10")
+
+nrow_bar10 <- nrow(bar10)
+
+sum_bar10 <- sum(bar10$sequence_length_template)
+
+bar10_passes <- run3_sequencing_summary_clean %>%
+        filter(barcode_arrangement == "barcode10") %>%
+        filter(passes_filtering == TRUE) %>%
+        nrow
+
+#bar11
+
+bar11 <- run3_sequencing_summary_clean %>%
+        filter(barcode_arrangement == "barcode11")
+
+nrow_bar11 <- nrow(bar11)
+
+sum_bar11 <- sum(bar11$sequence_length_template)
+
+bar11_passes <- run3_sequencing_summary_clean %>%
+        filter(barcode_arrangement == "barcode11") %>%
+        filter(passes_filtering == TRUE) %>%
+        nrow
+
+#bar12
+
+bar12 <- run3_sequencing_summary_clean %>%
+        filter(barcode_arrangement == "barcode12")
+
+nrow_bar12 <- nrow(bar12)
+
+sum_bar12 <- sum(bar12$sequence_length_template)
+
+bar12_passes <- run3_sequencing_summary_clean %>%
+        filter(barcode_arrangement == "barcode12") %>%
+        filter(passes_filtering == TRUE) %>%
+        nrow
+
+#bar13
+
+bar13 <- run3_sequencing_summary_clean %>%
+        filter(barcode_arrangement == "barcode13")
+
+nrow_bar13 <- nrow(bar13)
+
+sum_bar13 <- sum(bar13$sequence_length_template)
+
+bar13_passes <- run3_sequencing_summary_clean %>%
+        filter(barcode_arrangement == "barcode13") %>%
+        filter(passes_filtering == TRUE) %>%
+        nrow
+
+#bar14
+
+bar14 <- run3_sequencing_summary_clean %>%
+        filter(barcode_arrangement == "barcode14")
+
+nrow_bar14 <- nrow(bar14)
+
+sum_bar14<- sum(bar14$sequence_length_template)
+
+bar14_passes <- run3_sequencing_summary_clean %>%
+        filter(barcode_arrangement == "barcode14") %>%
+        filter(passes_filtering == TRUE) %>%
+        nrow
+
+#bar15
+
+bar15 <- run3_sequencing_summary_clean %>%
+        filter(barcode_arrangement == "barcode15")
+
+nrow_bar15 <- nrow(bar15)
+
+sum_bar15 <- sum(bar15$sequence_length_template)
+
+bar15_passes <- run3_sequencing_summary_clean %>%
+        filter(barcode_arrangement == "barcode15") %>%
+        filter(passes_filtering == TRUE) %>%
+        nrow
+
+#bar16
+
+bar16 <- run3_sequencing_summary_clean %>%
+        filter(barcode_arrangement == "barcode16")
+
+nrow_bar16 <- nrow(bar16)
+
+sum_bar16 <- sum(bar16$sequence_length_template)
+
+bar16_passes <- run3_sequencing_summary_clean %>%
+        filter(barcode_arrangement == "barcode16") %>%
+        filter(passes_filtering == TRUE) %>%
+        nrow
+
+#bar17
+
+bar17 <- run3_sequencing_summary_clean %>%
+        filter(barcode_arrangement == "barcode17")
+
+nrow_bar17 <- nrow(bar17)
+
+sum_bar17 <- sum(bar17$sequence_length_template)
+
+bar17_passes <- run3_sequencing_summary_clean %>%
+        filter(barcode_arrangement == "barcode17") %>%
+        filter(passes_filtering == TRUE) %>%
+        nrow
+
+#bar18
+
+bar18 <- run3_sequencing_summary_clean %>%
+        filter(barcode_arrangement == "barcode18")
+
+nrow_bar18<- nrow(bar18)
+
+sum_bar18 <- sum(bar18$sequence_length_template)
+
+bar18_passes <- run3_sequencing_summary_clean %>%
+        filter(barcode_arrangement == "barcode18") %>%
+        filter(passes_filtering == TRUE) %>%
+        nrow
+
+#bar19
+
+bar19 <- run3_sequencing_summary_clean %>%
+        filter(barcode_arrangement == "barcode19")
+
+nrow_bar19 <- nrow(bar19)
+
+sum_bar19 <- sum(bar19$sequence_length_template)
+
+bar19_passes <- run3_sequencing_summary_clean %>%
+        filter(barcode_arrangement == "barcode19") %>%
+        filter(passes_filtering == TRUE) %>%
+        nrow
+
+#bar20
+
+bar20 <- run3_sequencing_summary_clean %>%
+        filter(barcode_arrangement == "barcode20")
+
+nrow_bar20 <- nrow(bar20)
+
+sum_bar20 <- sum(bar20$sequence_length_template)
+
+bar20_passes <- run3_sequencing_summary_clean %>%
+        filter(barcode_arrangement == "barcode20") %>%
+        filter(passes_filtering == TRUE) %>%
+        nrow
+
+#bar21
+
+bar21 <- run3_sequencing_summary_clean %>%
+        filter(barcode_arrangement == "barcode21")
+
+nrow_bar21 <- nrow(bar21)
+
+sum_bar21 <- sum(bar21$sequence_length_template)
+
+bar21_passes <- run3_sequencing_summary_clean %>%
+        filter(barcode_arrangement == "barcode21") %>%
+        filter(passes_filtering == TRUE) %>%
+        nrow
+
+#bar22
+
+bar22 <- run3_sequencing_summary_clean %>%
+        filter(barcode_arrangement == "barcode22")
+
+nrow_bar22 <- nrow(bar22)
+
+sum_bar22 <- sum(bar22$sequence_length_template)
+
+bar22_passes <- run3_sequencing_summary_clean %>%
+        filter(barcode_arrangement == "barcode22") %>%
+        filter(passes_filtering == TRUE) %>%
+        nrow
+
+#bar23
+
+bar23 <- run3_sequencing_summary_clean %>%
+        filter(barcode_arrangement == "barcode23")
+
+nrow_bar23 <- nrow(bar23)
+
+sum_bar23 <- sum(bar23$sequence_length_template)
+
+bar23_passes <- run3_sequencing_summary_clean %>%
+        filter(barcode_arrangement == "barcode23") %>%
+        filter(passes_filtering == TRUE) %>%
+        nrow
+
+#bar24
+
+bar24 <- run3_sequencing_summary_clean %>%
+        filter(barcode_arrangement == "barcode24")
+
+nrow_bar24 <- nrow(bar24)
+
+sum_bar24 <- sum(bar24$sequence_length_template)
+
+bar24_passes <- run3_sequencing_summary_clean %>%
+        filter(barcode_arrangement == "barcode24") %>%
+        filter(passes_filtering == TRUE) %>%
+        nrow
+```
+
+
+
+```{r}
+###DATFRAME run 3
+#create a dataframe to store all this info:
+
+barcode <- c(1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24)
+reads <- c(nrow_bar1,nrow_bar2,nrow_bar3,nrow_bar4,nrow_bar5,nrow_bar6,nrow_bar7,nrow_bar8,nrow_bar9,nrow_bar10,nrow_bar11,nrow_bar12,nrow_bar13,nrow_bar14,nrow_bar15,nrow_bar16,nrow_bar17,nrow_bar18,nrow_bar19,nrow_bar20,nrow_bar21,nrow_bar21,nrow_bar23,nrow_bar24) #vector containing all the reads per barcode
+bases <- c(sum_bar1,sum_bar2,sum_bar3,sum_bar4,sum_bar5,sum_bar6,sum_bar7,sum_bar8,sum_bar9,sum_bar10,sum_bar11,sum_bar12,sum_bar13,sum_bar14,sum_bar15,sum_bar16,sum_bar17,sum_bar18,sum_bar19,sum_bar20,sum_bar21,sum_bar21,sum_bar23,sum_bar24)#vector containing all the bases per barcode
+passes <- c(bar1_passes,bar2_passes,bar3_passes,bar4_passes,bar5_passes,bar6_passes,bar7_passes,bar8_passes,bar9_passes,bar10_passes,bar11_passes,bar12_passes,bar13_passes,bar14_passes,bar15_passes,bar16_passes,bar17_passes,bar18_passes,bar19_passes,bar20_passes,bar21_passes,bar22_passes,bar23_passes,bar24_passes) #vector containing all the passed reads per barcode
+run <- c(3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3)
+
+run3_metrics_for_model <- data.frame(barcode,reads,bases,passes,run)
+print(run3_metrics_for_model)
+
+write.csv(run3_metrics_for_model, "run3_metrics_for_model.csv")
+
+```
