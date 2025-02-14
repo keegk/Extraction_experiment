@@ -1,0 +1,185 @@
+---
+title: "Loose and stringent filtering for extraction experiment"
+output: html_notebook
+---
+
+I am taking the taxonomy files (run1_culturevsnan_taxa_distinct etc.) generated from microbial_diversity.Rmd (cvn run1), microbial_diversity2.Rmd (cvn run2) and microbial_diversity3.Rmd (cvn run3) in the CulturevsNanopore1 R project and starting with these files for all subsequent work in this notebook:
+
+```{r setup}
+library(tidyverse)
+library(stringr)
+```
+
+```{r}
+load("run1_culturevsnan_taxa_distinct")
+load("run2_culturevsnan_taxa_distinct")
+load("run3_culturevsnan_taxa_distinct")
+```
+
+Remove any potential barcode shifting (the wrong barcode assigned to a read). To do this we need to look at the summary sequencing files for these runs, and then get a dataframe of reads with a barcode score less than 60 and with unclasssified reads removed, so that we can extract reads from this dataframe from our blast text files ((run1_culturevsnan_taxa_distinct etc.)
+
+```{r}
+#loading in the extracted reads from the summary sequencing files of these runs (original code in sum_seq_metrics_model2025.Rmd. Note, the size of the summary seq files are so large that I had to run them off one of my hardrives and not my onedrive so if you want to look at the original summary seq file for each of these runs, you need to use the hardrive and set the directory path to opts_knit$set(root.dir = "G:/Nanopore/SQKRBK004/Extraction_experiment_run_22.2.23/Extraction_experiment") 
+
+load("run1_sequencing_summary_reads_to_remove")
+load("run2_sequencing_summary_reads_to_remove")
+load("run3_sequencing_summary_reads_to_remove")
+
+#and filter these reads out of the corresponding blast text files for the corresponding run:
+
+##run1
+
+run1_sequencing_summary_reads_to_remove <- rename(run1_sequencing_summary_reads_to_remove, query.acc = read_id) #rename read_id in run1_sequencing_summary_reads_to_remove taken from the summary seq file to query.acc (which is what read_id is termed in the blast text file (they are the same variable))
+
+
+run1_culturevsnan_taxa_distinct_clean <- run1_culturevsnan_taxa_distinct %>% anti_join(run1_sequencing_summary_reads_to_remove) #this says, join these two dataframes, but remove any query.acc variables from the dataset () afert antijoin #this has removed about 2 millions reads
+
+run1_culturevsnan_taxa_distinct_clean <- save(run1_culturevsnan_taxa_distinct_clean, file = "run1_culturevsnan_taxa_distinct_clean")
+load("run1_culturevsnan_taxa_distinct_clean") #this was saved with 2025 written after it but the actual file name loads in without the 2025 bit after it just FYI.
+
+
+##run2
+
+run2_sequencing_summary_reads_to_remove <- rename(run2_sequencing_summary_reads_to_remove, query.acc = read_id) #rename read_id in run2_sequencing_summary_reads_to_remove taken from the summary seq file to query.acc (which is what read_id is termed in the blast text file (they are the same variable))
+
+
+run2_culturevsnan_taxa_distinct_clean <- run2_culturevsnan_taxa_distinct %>% anti_join(run2_sequencing_summary_reads_to_remove) #this says, join these two dataframes, but remove any query.acc variables from the dataset () afert antijoin  
+
+
+run2_culturevsnan_taxa_distinct_clean <- save(run2_culturevsnan_taxa_distinct_clean, file = "run2_culturevsnan_taxa_distinct_clean")
+load("run2_culturevsnan_taxa_distinct_clean") #this was saved with 2025 written after it but the actual file name loads in without the 2025 bit after it just FYI.
+
+
+
+##run3
+
+run3_sequencing_summary_reads_to_remove <- rename(run3_sequencing_summary_reads_to_remove, query.acc = read_id) #rename read_id in run3_sequencing_summary_reads_to_remove taken from the summary seq file to query.acc (which is what read_id is termed in the blast text file (they are the same variable))
+
+
+run3_culturevsnan_taxa_distinct_clean <- run3_culturevsnan_taxa_distinct %>% anti_join(run3_sequencing_summary_reads_to_remove) #this says, join these two dataframes, but remove any query.acc variables in from the dataset () afert antijoin 
+
+run3_culturevsnan_taxa_distinct_clean <- save(run3_culturevsnan_taxa_distinct_clean, file = "run3_culturevsnan_taxa_distinct_clean")
+load("run3_culturevsnan_taxa_distinct_clean") #this was saved with 2025 written after it but the actual file name loads in without the 2025 bit after it just FYI.
+
+```
+
+
+
+Stringent filtering run1:
+
+```{r}
+cvn1_stringent_2025 <- run1_culturevsnan_taxa_distinct  %>%
+                
+                mutate(proportional_gap_number = gaps/alignment.length) %>%# 7.11.24 adding this as i think gaps set at less than 5 is too harsh for longer reads 
+                mutate(proportional_mismatch_number = mismatches/alignment.length) %>% # 7.11.24 adding this as i think gaps set at less than 5 is too harsh for longer reads 
+ # filter(gaps <= 5) %>% #and across the whole dataset, filter out any reads that have gaps more than 5 and
+               #filter(mismatches <= 200) %>% #mismatches more than 200
+                          filter(proportional_gap_number <= 0.1) %>% #here i am saying that there can be up to and including 10% gaps in the alignment 
+                           filter(proportional_mismatch_number <= 0.1) %>%#line 428-433 is general filtering of the entire dataset
+               # filter(mismatches <= 200) %>%
+                mutate(alignment.prop = alignment.length/query.length)%>%
+                filter(alignment.prop >= 0.25) %>%
+                filter(query.length >= 500)%>%
+                filter(subject.length >= 100)%>% #line 428-433 is general filtering of the entire dataset
+  
+  
+               group_by (query.acc, subject.tax.ids) %>% # code from line 436-451 written with nick as the weighted approach 25.10.24
+            
+               mutate(evalue_nonzero = ifelse(evalue == 0, 1, evalue), 
+                      relative_evalue = ifelse(evalue == 0, 1, min(evalue_nonzero)/evalue_nonzero)) %>%
+              mutate(relative_alignment_length = alignment.length/max(alignment.length)) %>%
+              mutate(alignment_count = n()) %>% #taxon alignment count within a read 
+              
+              ungroup() %>%
+              group_by(query.acc) %>%
+             
+              mutate(relative_count = alignment_count/n()) %>% #proportion of read alignments to a taxon
+               mutate(weight_score = relative_evalue*relative_alignment_length*(percent.identity/100)) %>%
+             filter(weight_score == max(weight_score)) %>%
+              filter(relative_count == max(relative_count)) %>%
+              slice_sample(n=1) %>%
+              ungroup()
+
+save(cvn1_stringent_2025, file = "cvn1_stringent_2025") #saving the file for quick reloading later on
+load("cvn1_stringent_2025")
+```
+
+
+Stringent filtering run2:
+
+```{r}
+cvn2_stringent_2025 <- run2_culturevsnan_taxa_distinct %>%
+                
+                mutate(proportional_gap_number = gaps/alignment.length) %>%# 7.11.24 adding this as i think gaps set at less than 5 is too harsh for longer reads 
+                mutate(proportional_mismatch_number = mismatches/alignment.length) %>% # 7.11.24 adding this as i think gaps set at less than 5 is too harsh for longer reads 
+ # filter(gaps <= 5) %>% #and across the whole dataset, filter out any reads that have gaps more than 5 and
+               #filter(mismatches <= 200) %>% #mismatches more than 200
+                          filter(proportional_gap_number <= 0.1) %>% #here i am saying that there can be up to and including 10% gaps in the alignment 
+                           filter(proportional_mismatch_number <= 0.1) %>%#line 428-433 is general filtering of the entire dataset
+               # filter(mismatches <= 200) %>%
+                mutate(alignment.prop = alignment.length/query.length)%>%
+                filter(alignment.prop >= 0.25) %>%
+                filter(query.length >= 500)%>%
+                filter(subject.length >= 100)%>% #line 428-433 is general filtering of the entire dataset
+  
+  
+               group_by (query.acc, subject.tax.ids) %>% # code from line 436-451 written with nick as the weighted approach 25.10.24
+            
+               mutate(evalue_nonzero = ifelse(evalue == 0, 1, evalue), 
+                      relative_evalue = ifelse(evalue == 0, 1, min(evalue_nonzero)/evalue_nonzero)) %>%
+              mutate(relative_alignment_length = alignment.length/max(alignment.length)) %>%
+              mutate(alignment_count = n()) %>% #taxon alignment count within a read 
+              
+              ungroup() %>%
+              group_by(query.acc) %>%
+             
+              mutate(relative_count = alignment_count/n()) %>% #proportion of read alignments to a taxon
+               mutate(weight_score = relative_evalue*relative_alignment_length*(percent.identity/100)) %>%
+             filter(weight_score == max(weight_score)) %>%
+              filter(relative_count == max(relative_count)) %>%
+              slice_sample(n=1) %>%
+              ungroup()
+
+save(cvn2_stringent_2025, file = "cvn2_stringent_2025") #saving the file for quick reloading later on
+load("cvn2_stringent_2025")
+```
+
+
+Stringent filtering run3:
+
+```{r}
+cvn3_stringent_2025 <- run3_culturevsnan_taxa_distinct %>%
+                
+                mutate(proportional_gap_number = gaps/alignment.length) %>%# 7.11.24 adding this as i think gaps set at less than 5 is too harsh for longer reads 
+                mutate(proportional_mismatch_number = mismatches/alignment.length) %>% # 7.11.24 adding this as i think gaps set at less than 5 is too harsh for longer reads 
+ # filter(gaps <= 5) %>% #and across the whole dataset, filter out any reads that have gaps more than 5 and
+               #filter(mismatches <= 200) %>% #mismatches more than 200
+                          filter(proportional_gap_number <= 0.1) %>% #here i am saying that there can be up to and including 10% gaps in the alignment 
+                           filter(proportional_mismatch_number <= 0.1) %>%#line 428-433 is general filtering of the entire dataset
+               # filter(mismatches <= 200) %>%
+                mutate(alignment.prop = alignment.length/query.length)%>%
+                filter(alignment.prop >= 0.25) %>%
+                filter(query.length >= 500)%>%
+                filter(subject.length >= 100)%>% #line 428-433 is general filtering of the entire dataset
+  
+  
+               group_by (query.acc, subject.tax.ids) %>% # code from line 436-451 written with nick as the weighted approach 25.10.24
+            
+               mutate(evalue_nonzero = ifelse(evalue == 0, 1, evalue), 
+                      relative_evalue = ifelse(evalue == 0, 1, min(evalue_nonzero)/evalue_nonzero)) %>%
+              mutate(relative_alignment_length = alignment.length/max(alignment.length)) %>%
+              mutate(alignment_count = n()) %>% #taxon alignment count within a read 
+              
+              ungroup() %>%
+              group_by(query.acc) %>%
+             
+              mutate(relative_count = alignment_count/n()) %>% #proportion of read alignments to a taxon
+               mutate(weight_score = relative_evalue*relative_alignment_length*(percent.identity/100)) %>%
+             filter(weight_score == max(weight_score)) %>%
+              filter(relative_count == max(relative_count)) %>%
+              slice_sample(n=1) %>%
+              ungroup()
+
+save(cvn3_stringent_2025, file = "cvn3_stringent_2025") #saving the file for quick reloading later on
+load("cvn3_stringent_2025")
+```
