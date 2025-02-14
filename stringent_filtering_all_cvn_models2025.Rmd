@@ -12,6 +12,11 @@ library(stringr)
 
 ```{r}
 load("run1_culturevsnan_taxa_distinct")
+
+
+read_tax_id_296_original_dataset <- run1_culturevsnan_taxa_distinct %>%
+                    filter(query.acc == "00001516-1bee-47de-ab68-635cca9a0871")
+
 load("run2_culturevsnan_taxa_distinct")
 load("run3_culturevsnan_taxa_distinct")
 ```
@@ -35,19 +40,21 @@ run1_sequencing_summary_reads_to_remove <- rename(run1_sequencing_summary_reads_
 run1_culturevsnan_taxa_distinct_clean <- run1_culturevsnan_taxa_distinct %>% anti_join(run1_sequencing_summary_reads_to_remove) #this says, join these two dataframes, but remove any query.acc variables from the dataset () afert antijoin #this has removed about 2 millions reads
 
 run1_culturevsnan_taxa_distinct_clean <- save(run1_culturevsnan_taxa_distinct_clean, file = "run1_culturevsnan_taxa_distinct_clean")
-load("run1_culturevsnan_taxa_distinct_clean") #this was saved with 2025 written after it but the actual file name loads in without the 2025 bit after it just FYI.
+load("run1_culturevsnan_taxa_distinct_clean") 
 
+read_tax_id_296_original_clean <- run1_culturevsnan_taxa_distinct_clean %>%
+                    filter(query.acc == "00001516-1bee-47de-ab68-635cca9a0871")
 
 ##run2
 
 run2_sequencing_summary_reads_to_remove <- rename(run2_sequencing_summary_reads_to_remove, query.acc = read_id) #rename read_id in run2_sequencing_summary_reads_to_remove taken from the summary seq file to query.acc (which is what read_id is termed in the blast text file (they are the same variable))
 
 
-run2_culturevsnan_taxa_distinct_clean <- run2_culturevsnan_taxa_distinct %>% anti_join(run2_sequencing_summary_reads_to_remove) #this says, join these two dataframes, but remove any query.acc variables from the dataset () afert antijoin  
+run2_culturevsnan_taxa_distinct_clean <- run2_culturevsnan_taxa_distinct %>% anti_join(run2_sequencing_summary_reads_to_remove) #this says, join these two dataframes, but remove any query.acc variables from the dataset () afert antijoin  #this has removed about 1 millions reads
 
 
 run2_culturevsnan_taxa_distinct_clean <- save(run2_culturevsnan_taxa_distinct_clean, file = "run2_culturevsnan_taxa_distinct_clean")
-load("run2_culturevsnan_taxa_distinct_clean") #this was saved with 2025 written after it but the actual file name loads in without the 2025 bit after it just FYI.
+load("run2_culturevsnan_taxa_distinct_clean") 
 
 
 
@@ -59,8 +66,7 @@ run3_sequencing_summary_reads_to_remove <- rename(run3_sequencing_summary_reads_
 run3_culturevsnan_taxa_distinct_clean <- run3_culturevsnan_taxa_distinct %>% anti_join(run3_sequencing_summary_reads_to_remove) #this says, join these two dataframes, but remove any query.acc variables in from the dataset () afert antijoin 
 
 run3_culturevsnan_taxa_distinct_clean <- save(run3_culturevsnan_taxa_distinct_clean, file = "run3_culturevsnan_taxa_distinct_clean")
-load("run3_culturevsnan_taxa_distinct_clean") #this was saved with 2025 written after it but the actual file name loads in without the 2025 bit after it just FYI.
-
+load("run3_culturevsnan_taxa_distinct_clean") 
 ```
 
 
@@ -68,8 +74,11 @@ load("run3_culturevsnan_taxa_distinct_clean") #this was saved with 2025 written 
 Stringent filtering run1:
 
 ```{r}
-cvn1_stringent_2025 <- run1_culturevsnan_taxa_distinct  %>%
-                
+
+
+cvn1_stringent_2025_clean <- run1_culturevsnan_taxa_distinct_clean %>%
+                            filter(!if_all(c(phylum, genus, species.y), is.na)) %>% #removeany rows that have NA in phyla,genus and species. Does not remove a row if only NA in one of these classes. Added 14.2.25 and confirmed to be filtering out reads weith NA.
+ #doing this code individually for each class so we don't drop a row that has NA in phyla but taxa info in genera or species etc
                 mutate(proportional_gap_number = gaps/alignment.length) %>%# 7.11.24 adding this as i think gaps set at less than 5 is too harsh for longer reads 
                 mutate(proportional_mismatch_number = mismatches/alignment.length) %>% # 7.11.24 adding this as i think gaps set at less than 5 is too harsh for longer reads 
  # filter(gaps <= 5) %>% #and across the whole dataset, filter out any reads that have gaps more than 5 and
@@ -108,8 +117,8 @@ load("cvn1_stringent_2025")
 Stringent filtering run2:
 
 ```{r}
-cvn2_stringent_2025 <- run2_culturevsnan_taxa_distinct %>%
-                
+cvn2_stringent_2025 <- run2_culturevsnan_taxa_distinct_clean %>%
+                         filter(!if_all(c(phylum, genus, species.y), is.na)) %>% 
                 mutate(proportional_gap_number = gaps/alignment.length) %>%# 7.11.24 adding this as i think gaps set at less than 5 is too harsh for longer reads 
                 mutate(proportional_mismatch_number = mismatches/alignment.length) %>% # 7.11.24 adding this as i think gaps set at less than 5 is too harsh for longer reads 
  # filter(gaps <= 5) %>% #and across the whole dataset, filter out any reads that have gaps more than 5 and
@@ -148,8 +157,8 @@ load("cvn2_stringent_2025")
 Stringent filtering run3:
 
 ```{r}
-cvn3_stringent_2025 <- run3_culturevsnan_taxa_distinct %>%
-                
+cvn3_stringent_2025 <- run3_culturevsnan_taxa_distinct_clean %>%
+                      filter(!if_all(c(phylum, genus, species.y), is.na)) %>% 
                 mutate(proportional_gap_number = gaps/alignment.length) %>%# 7.11.24 adding this as i think gaps set at less than 5 is too harsh for longer reads 
                 mutate(proportional_mismatch_number = mismatches/alignment.length) %>% # 7.11.24 adding this as i think gaps set at less than 5 is too harsh for longer reads 
  # filter(gaps <= 5) %>% #and across the whole dataset, filter out any reads that have gaps more than 5 and
