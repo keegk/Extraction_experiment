@@ -1,0 +1,180 @@
+---
+title: "Extracting number of unique phyla,genera and species for models in extraction exp manuscript 2025"
+output: html_notebook
+---
+
+**Calculating number of unique phyla for each sample across the three Nanopore runs)
+
+```{r setup}
+library(tidyverse)
+library(stringr)
+```
+
+```{r}
+load("cvn1_stringent_2025")
+load("cvn1_stringent_2025")
+load("cvn1_stringent_2025") #all datasets created in the R notebook "stringent_filtering_all_cvn_models2025.Rmd"
+```
+
+```{r}
+
+##run1
+
+
+cvn1_phyla_for_model <- cvn1_stringent_2025 %>% 
+  filter(superkingdom == "Bacteria") %>%
+group_by(barcode, phylum) %>%
+  mutate(barcode = str_replace(barcode, "^barcode", "0")) %>%
+   mutate(barcode = as.numeric(barcode)) %>% #changing the names in barcode column from barcode1 to 01, etc, so that the sequential order is correct. convert this to numeric later too so that it knows these are numbers
+  distinct(phylum) %>% #you actually need to filter by distinct phylum to avoid inflating the numbers of phyla, because if you filter on subject tax id, this id applies to the species so for barcode 1 say, if there are m,ultiple types of pseduodomonadota spp (which there are), all of these kept kept when you sum the phyla, so you end up with far higher numbers of phyla because pseudomonadota is counted multiple times instead of just once
+   group_by (barcode)  %>%
+  summarise(phylum_count = n()) 
+
+  
+  
+cvn1_genera_for_model <- cvn1_stringent_2025 %>% 
+  filter(superkingdom == "Bacteria") %>%
+group_by(barcode, genus) %>%
+  mutate(barcode = str_replace(barcode, "^barcode", "0")) %>% 
+   mutate(barcode = as.numeric(barcode)) %>% #changing the names in barcode column from barcode1 to 01, etc, so that the sequential order is correct. convert this to numeric later too so that it knows these are numbers
+  distinct(genus) %>%
+   group_by (barcode)  %>%
+  summarise(genera_count = n()) 
+
+cvn1_species_for_model <- cvn1_stringent_2025 %>% 
+  filter(superkingdom == "Bacteria") %>%
+group_by(barcode, species.y) %>%
+  mutate(barcode = str_replace(barcode, "^barcode", "0")) %>% 
+   mutate(barcode = as.numeric(barcode)) %>% #changing the names in barcode column from barcode1 to 01, etc, so that the sequential order is correct. convert this to numeric later too so that it knows these are numbers
+  distinct(species.y) %>%
+   group_by (barcode)  %>%
+  summarise(species_count = n()) 
+  
+  
+##making final combined dataframe with counts for phyla, genus and species:
+
+cvn1_all_counts_model <- cvn1_phyla_for_model%>%
+  left_join(
+cvn1_genera_for_model, by = "barcode") %>%
+  left_join(cvn1_species_for_model, by = "barcode")
+
+write.csv(cvn1_all_counts_model, "cvn1_all_counts_model.csv")
+
+
+```
+
+
+```{r}
+
+##run2
+
+
+cvn2_phyla_for_model <- cvn2_stringent_2025 %>% 
+  filter(superkingdom == "Bacteria") %>%
+group_by(barcode, phylum) %>%
+  mutate(barcode = str_replace(barcode, "^barcode", "0")) %>%
+   mutate(barcode = as.numeric(barcode)) %>% #changing the names in barcode column from barcode1 to 01, etc, so that the sequential order is correct. convert this to numeric later too so that it knows these are numbers
+  distinct(phylum) %>% #you actually need to filter by distinct phylum to avoid inflating the numbers of phyla, because if you filter on subject tax id, this id applies to the species so for barcode 1 say, if there are m,ultiple types of pseduodomonadota spp (which there are), all of these kept kept when you sum the phyla, so you end up with far higher numbers of phyla because pseudomonadota is counted multiple times instead of just once
+   group_by (barcode)  %>%
+  summarise(phylum_count = n()) 
+
+  
+  
+cvn2_genera_for_model <- cvn2_stringent_2025 %>% 
+  filter(superkingdom == "Bacteria") %>%
+group_by(barcode, genus) %>%
+  mutate(barcode = str_replace(barcode, "^barcode", "0")) %>% 
+   mutate(barcode = as.numeric(barcode)) %>% #changing the names in barcode column from barcode1 to 01, etc, so that the sequential order is correct. convert this to numeric later too so that it knows these are numbers
+  distinct(genus) %>%
+   group_by (barcode)  %>%
+  summarise(genera_count = n()) 
+
+cvn2_species_for_model <- cvn2_stringent_2025 %>% 
+  filter(superkingdom == "Bacteria") %>%
+group_by(barcode, species.y) %>%
+  mutate(barcode = str_replace(barcode, "^barcode", "0")) %>% 
+   mutate(barcode = as.numeric(barcode)) %>% #changing the names in barcode column from barcode1 to 01, etc, so that the sequential order is correct. convert this to numeric later too so that it knows these are numbers
+  distinct(species.y) %>%
+   group_by (barcode)  %>%
+  summarise(species_count = n()) 
+  
+  
+##making final combined dataframe with counts for phyla, genus and species:
+
+cvn2_all_counts_model <- cvn2_phyla_for_model%>%
+  left_join(
+cvn2_genera_for_model, by = "barcode") %>%
+  left_join(cvn2_species_for_model, by = "barcode")
+
+write.csv(cvn2_all_counts_model, "cvn2_all_counts_model.csv")
+
+
+```
+
+
+```{r}
+
+##run3
+
+
+cvn3_phyla_for_model <- cvn3_stringent_2025 %>% 
+  filter(superkingdom == "Bacteria") %>%
+group_by(barcode, phylum) %>%
+  mutate(barcode = str_replace(barcode, "^barcode", "0")) %>%
+   mutate(barcode = as.numeric(barcode)) %>% #changing the names in barcode column from barcode1 to 01, etc, so that the sequential order is correct. convert this to numeric later too so that it knows these are numbers
+  distinct(phylum) %>% #you actually need to filter by distinct phylum to avoid inflating the numbers of phyla, because if you filter on subject tax id, this id applies to the species so for barcode 1 say, if there are m,ultiple types of pseduodomonadota spp (which there are), all of these kept kept when you sum the phyla, so you end up with far higher numbers of phyla because pseudomonadota is counted multiple times instead of just once
+   group_by (barcode)  %>%
+  summarise(phylum_count = n()) 
+
+  
+  
+cvn3_genera_for_model <- cvn3_stringent_2025 %>% 
+  filter(superkingdom == "Bacteria") %>%
+group_by(barcode, genus) %>%
+  mutate(barcode = str_replace(barcode, "^barcode", "0")) %>% 
+   mutate(barcode = as.numeric(barcode)) %>% #changing the names in barcode column from barcode1 to 01, etc, so that the sequential order is correct. convert this to numeric later too so that it knows these are numbers
+  distinct(genus) %>%
+   group_by (barcode)  %>%
+  summarise(genera_count = n()) 
+
+cvn3_species_for_model <- cvn3_stringent_2025 %>% 
+  filter(superkingdom == "Bacteria") %>%
+group_by(barcode, species.y) %>%
+  mutate(barcode = str_replace(barcode, "^barcode", "0")) %>% 
+   mutate(barcode = as.numeric(barcode)) %>% #changing the names in barcode column from barcode1 to 01, etc, so that the sequential order is correct. convert this to numeric later too so that it knows these are numbers
+  distinct(species.y) %>%
+   group_by (barcode)  %>%
+  summarise(species_count = n()) 
+  
+  
+##making final combined dataframe with counts for phyla, genus and species:
+
+cvn3_all_counts_model <- cvn3_phyla_for_model%>%
+  left_join(
+cvn3_genera_for_model, by = "barcode") %>%
+  left_join(cvn3_species_for_model, by = "barcode")
+
+write.csv(cvn3_all_counts_model, "cvn3_all_counts_model.csv")
+
+
+```
+
+
+**Run1 unique no of. phyla, genera and species dataframe**
+
+```{r}
+###DATFRAME run 1
+#create a dataframe to store all this info:
+
+barcode <- c(1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24)
+reads <- c(nrow_bar1,nrow_bar2,nrow_bar3,nrow_bar4,nrow_bar5,nrow_bar6,nrow_bar7,nrow_bar8,nrow_bar9,nrow_bar10,nrow_bar11,nrow_bar12,nrow_bar13,nrow_bar14,nrow_bar15,nrow_bar16,nrow_bar17,nrow_bar18,nrow_bar19,nrow_bar20,nrow_bar21,nrow_bar21,nrow_bar23,nrow_bar24) #vector containing all the reads per barcode
+bases <- c(sum_bar1,sum_bar2,sum_bar3,sum_bar4,sum_bar5,sum_bar6,sum_bar7,sum_bar8,sum_bar9,sum_bar10,sum_bar11,sum_bar12,sum_bar13,sum_bar14,sum_bar15,sum_bar16,sum_bar17,sum_bar18,sum_bar19,sum_bar20,sum_bar21,sum_bar21,sum_bar23,sum_bar24)#vector containing all the bases per barcode
+passes <- c(bar1_passes,bar2_passes,bar3_passes,bar4_passes,bar5_passes,bar6_passes,bar7_passes,bar8_passes,bar9_passes,bar10_passes,bar11_passes,bar12_passes,bar13_passes,bar14_passes,bar15_passes,bar16_passes,bar17_passes,bar18_passes,bar19_passes,bar20_passes,bar21_passes,bar22_passes,bar23_passes,bar24_passes) #vector containing all the passed reads per barcode
+run <- c(1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1)
+
+run1_metrics_for_model <- data.frame(barcode,reads,bases,passes,run)
+print(run1_metrics_for_model)
+
+write.csv(run1_metrics_for_model, "run1_metrics_for_model.csv")
+
+```
