@@ -1,0 +1,125 @@
+---
+title: "Random mixed effects model for extraction experiment"
+output: html_notebook
+---
+
+```{r setup}
+library(tidyverse)
+library(stringr)
+library(lme4)
+library(lmerTest)
+```
+
+Loading in the csv file that was manually put together using data from the R notebooks sum_seq_metrics_model2025 (data from the summary sequencing files i.e, no. reads, bases and passed reads per barcode) and unique_ophyla_genera_species_model2025.Rmd (counts of uniwue phyla, genera and species per barcode across the 3 additional Nanopore runs)
+```{r}
+QC_taxa_metrics <- read.csv("QC_taxa_metrics_model2025.csv")
+#Removing the log and HMW standards and cattle samples (theres only 2 cattle but I only want geese in this dataset):
+
+
+QC_taxa_metrics_trim <- QC_taxa_metrics %>%
+                        filter(!sample %in% c("F1C4", "F2C13", "HM1", "LOG1", "HMW2", "LOG2", "HMW3", "LOG3"))
+
+
+```
+
+
+**Model 1**
+
+Does increasing the volume of faeces used (25ul vs 200ul, lead to higher dna concentrations?
+
+```{r}
+
+#reads <- lmer(pass_count ~ precipitated + volume + spike + (1|sample/run), data = QC_taxa_metrics) # do the number of pass counts significantly differ with volume and precipitation (spike is included here and random variables are sample name and the run (either 1 or 111))
+
+
+
+dna_conc <- lmer(dna_concentration ~ precipitated + volume + spike + (1|sample/run), data = QC_taxa_metrics_trim %>% 
+                  mutate(dna_concentration = log10(dna_concentration)))# do the number of pass counts significantly differ with volume and precipitation (spike is included here and random variables are sample name and the run). DNA concentration is log transformed because if we kept it untransformed, then we would be saying, when you increase dna concetration by one unit (spo  for example 10ul to 11ul) we get x amount of reads, which isnt super informative. But if we log transform it, then we say for every unit increase, which is now a ten fold increase (10 to 100), then we get x amount of reads, which is intuitevely more informative.
+
+
+
+summary(dna_conc) #volume is SIGNIFICANCT but DNA precipitation and DNA concentration isnt
+
+
+plot(passed_reads)
+
+#install.packages("sjPlot")
+
+library(sjPlot)
+plot_model(passed_reads, type  = "est", show.values = TRUE, show.p = TRUE)
+
+```
+
+
+**Model 2.1**
+
+Do the number of passed reads differ based on the dna concentration?
+
+```{r}
+
+
+no_passed_reads <- lmer(pass_count ~ precipitated + volume + spike + dna_concentration + (1|sample/run), data = QC_taxa_metrics_trim %>% 
+                  mutate(dna_concentration = log10(dna_concentration))) # do the number of pass counts significantly differ with volume and precipitation (spike is included here and random variables are sample name and the run (either 1 or 111))
+
+
+
+summary(no_passed_reads) #volume and dna concentration are significant
+
+
+plot(no_passed_reads)
+
+#install.packages("sjPlot")
+
+library(sjPlot)
+plot_model(no_passed_reads, type  = "est", show.values = TRUE, show.p = TRUE)
+
+```
+
+
+
+**Model 2.2**
+
+Do the number of bases differ based on the dna concentration?
+
+```{r}
+
+
+no_bases <- lmer(no_bases ~ precipitated + volume + spike + dna_concentration + (1|sample/run), data = QC_taxa_metrics_trim %>% 
+                  mutate(dna_concentration = log10(dna_concentration))) # do the number of pass counts significantly differ with volume and precipitation (spike is included here and random variables are sample name and the run (either 1 or 111))
+
+
+
+summary(no_bases) #volume and dna concentration are significant
+
+
+plot(no_bases)
+
+#install.packages("sjPlot")
+
+library(sjPlot)
+plot_model(no_bases, type  = "est", show.values = TRUE, show.p = TRUE)
+
+```
+
+Model 3 - Do the number of unique phyla, generam species identified differ based on DNA concentration, precipitation, volume etc.
+
+```{r}
+
+phyla <- lmer(unique_phyla ~ precipitated + volume + spike + dna_concentration + (1|sample/run), data = QC_taxa_metrics_trim %>% 
+                  mutate(dna_concentration = log10(dna_concentration)))
+
+summary(phyla) #Spike is only one significant
+
+genera <- lmer(unique_genera~ precipitated + volume + spike + dna_concentration + (1|sample/run), data = QC_taxa_metrics_trim %>% 
+                  mutate(dna_concentration = log10(dna_concentration)))
+
+summary(genera) #spike, volume and precipitated = TRUE are significant
+
+
+species <- lmer(unique_species ~ precipitated + volume + spike + dna_concentration + (1|sample/run), data = QC_taxa_metrics_trim %>% 
+                  mutate(dna_concentration = log10(dna_concentration)))
+
+summary(species) #spike, volume are significant
+
+
+```
