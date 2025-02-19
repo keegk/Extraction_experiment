@@ -1,0 +1,105 @@
+---
+title: "Alpha diversity using inext - extraction exp loose and stringent datasets 2025"
+output: html_notebook
+---
+
+```{r setup}
+#install.packages("iNEXT")
+library(iNEXT)
+library(tidyverse)
+library(stringr)
+
+load("loose_ext_exp_2025")
+load("stringent_ext_exp_2025")
+```
+
+***Alpha diversity of species across the total dataset using i next...THIS IS WHAT I HAVE USED FOR THE PAPER 26.4.24, this time with filtering of distinct taxa***
+
+
+
+**Update 2025 - loose dataset***
+
+
+```{r}
+#Generating an abundance table of species per extraction method
+
+foriNEXT_loose <- loose_ext_exp_2025 %>%
+    group_by(species,extraction.method) %>%
+    #distinct(query.acc) %>%  # added 26.4.24 to filter out reads hitting to multiple phyla. Update feb 2025 - we dont actually need this anymore as our loose/stringent filtering has already removed duplicate read entries
+    summarise(abundance = n()) %>%
+    pivot_wider(names_from = extraction.method, values_from = abundance)%>%
+  mutate_all( ~replace_na(.,0)) %>%
+  ungroup
+
+
+#removing any non-numeric columns from this abundance table (i.e the species column). Abundance dataframe must have only numeric variables
+
+
+
+foriNEXT_loose <- foriNEXT_loose %>%
+  select(!(species))#dropping the species column as the dataframe has to only be numeric (each row is the abundance of the same species across the columns (extraction methods) all we've done here is just dropped the species column giving you the name of the species, which we don't need anyway as we are only interested in abundances as a whole and not abundances of a specidfic species)
+foriNEXT_loose<- as.data.frame(foriNEXT_loose)
+
+#iNEXT function
+
+results_foriNEXT_loose <- iNEXT(foriNEXT_loose, q=c(0,1,2), datatype = "abundance") #asking it to give me hills species richness q=0, hills shannon, q=1 and hilla simpson, q=2 for every extraction method, supplying a dataset that has abundance data (this is our foriNEXT_loose dataset made at the beginning of this code chunk. The iNEXT() function returns the "iNEXT" object including three output lists: 
+
+observed_results_foriNEXT_loose <- results_foriNEXT_loose[["iNextEst"]][["coverage_based"]] #this will give you the observed results for every extraction method. #pulling out [["iNextEst"]] from the list results_foriNEXT_loose becuase this has size based and coverage based diversity results (qD) for each of our diversity metrics (Order.q). We ignore everything except the observed data, because the coverage data here is based on standardising based on a certain sample size, not a certain coverage (what estimateD below does)
+
+#$DataInfo for summarizing data information
+#$iNextEst for showing size- and coverage-based diversity estimates along with related statistics for a series of rarefied and extrapolated samples; and
+#$AsyEst for showing asymptotic diversity estimates along with related statistics.
+
+#Coverage-based approach with EstimateD function, setting coverage to 95%
+
+total_D_loose_95_distinct <- estimateD(foriNEXT_loose, q=c(0,1,2), datatype = "abundance", base = "coverage", level = 0.95)
+
+
+```
+
+
+
+
+`
+
+
+
+***stringent dataset***
+
+```{r}
+#Generating an abundance table of species per extraction method
+
+foriNEXT_stringent <- stringent_ext_exp_2025 %>%
+    group_by(species,extraction.method) %>%
+    #distinct(query.acc) %>%  # added 26.4.24 to filter out reads hitting to multiple phyla. Update feb 2025 - we dont actually need this anymore as our stringent/stringent filtering has already removed duplicate read entries
+    summarise(abundance = n()) %>%
+    pivot_wider(names_from = extraction.method, values_from = abundance)%>%
+  mutate_all( ~replace_na(.,0)) %>%
+  ungroup
+
+
+#removing any non-numeric columns from this abundance table (i.e the species column). Abundance dataframe must have only numeric variables
+
+
+
+foriNEXT_stringent <- foriNEXT_stringent %>%
+  select(!(species))#dropping the species column as the dataframe has to only be numeric (each row is the abundance of the same species across the columns (extraction methods) all we've done here is just dropped the species column giving you the name of the species, which we don't need anyway as we are only interested in abundances as a whole and not abundances of a specidfic species)
+foriNEXT_stringent<- as.data.frame(foriNEXT_stringent)
+
+#iNEXT function
+
+results_foriNEXT_stringent <- iNEXT(foriNEXT_stringent, q=c(0,1,2), datatype = "abundance") #asking it to give me hills species richness q=0, hills shannon, q=1 and hilla simpson, q=2 for every extraction method, supplying a dataset that has abundance data (this is our foriNEXT_stringent dataset made at the beginning of this code chunk. The iNEXT() function returns the "iNEXT" object including three output lists: 
+
+observed_results_foriNEXT_stringent <- results_foriNEXT_stringent[["iNextEst"]][["coverage_based"]] #this will give you the observed results for every extraction method. #pulling out [["iNextEst"]] from the list results_foriNEXT_stringent becuase this has size based and coverage based diversity results (qD) for each of our diversity metrics (Order.q). We ignore everything except the observed data, because the coverage data here is based on standardising based on a certain sample size, not a certain coverage (what estimateD below does)
+
+#$DataInfo for summarizing data information
+#$iNextEst for showing size- and coverage-based diversity estimates along with related statistics for a series of rarefied and extrapolated samples; and
+#$AsyEst for showing asymptotic diversity estimates along with related statistics.
+
+#Coverage-based approach with EstimateD function, setting coverage to 95%
+
+total_D_stringent_95_distinct <- estimateD(foriNEXT_stringent, q=c(0,1,2), datatype = "abundance", base = "coverage", level = 0.95)
+
+
+```
+
