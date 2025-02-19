@@ -101,7 +101,7 @@ plot_model(no_bases, type  = "est", show.values = TRUE, show.p = TRUE)
 
 ```
 
-Model 3 - Do the number of unique phyla, generam species identified differ based on DNA concentration, precipitation, volume etc.
+Model 3 - Do the number of unique phyla, genera and species identified differ based on DNA concentration, precipitation, volume etc.
 
 ```{r}
 
@@ -123,3 +123,70 @@ summary(species) #spike, volume are significant
 
 
 ```
+
+Supplementary figure - does ethanol precipitation affect the proportions of bacterial phyla observed?
+
+```{r}
+#there are only 3 samples across the three runs (barcode 2,3,5,6,8 and 9 from run 1) that 1) aren't spiked with campy, so the phyla proportions won't be aertificially skewed and 2) that have the same starting amount of faeces  (200 ul) but are either precipitated or unprecipitated. Do a side by side comparison of these three samples to show if precipitation is skewing the proportions.
+
+load("cvn1_stringent_2025")
+
+##phyla comparison
+
+precipitated_unprecipitated_samples <-cvn1_stringent_2025 %>%
+                                     filter(barcode %in% c("barcode2", "barcode3", "barcode5", "barcode6", "barcode8", "barcode9")) %>%
+  group_by(barcode, phylum) %>%
+   summarise(phylum_count = n()) %>%
+  mutate(prop =prop.table(phylum_count)) %>%
+  ungroup() %>%
+  #distinct(query.acc) %>%
+  arrange(desc(prop)) %>%
+  mutate(phylum = replace_na(phylum, "Unassigned")) %>%
+  mutate(phylum = factor(phylum, levels = unique(phylum)))
+
+
+precipitated_unprecipitated_samples %>% 
+  mutate(phylum = if_else(prop < 0.001, "Other", phylum)) %>% #AFTER FILTERING FOR UNIQUE TAXA ID, im now changing the other phyla proportion to 0.02, becuase a lot more will be represented on the graph if i left it at 0.002
+  ggplot(aes(x=barcode,y=prop, fill=phylum)) +
+    geom_col() +
+   # ylim(1,0) +
+  ylim(0,1) + #26.4.24 flipping this back to 0 to 1 becuase its more interpretable now
+    labs(x="barcode", y="Proportion") +
+        #title="Proportional distribution of bacterial phyla present per extraction method") +
+     theme(text = element_text(size=25),
+    axis.text.x = element_text(angle  = 90, vjust = 1.0, hjust = 1.0)) +
+  #scale_fill_brewer(palette = "RdYlBu", direction = 1) + 
+scale_fill_manual(values=c("#dd3497","#ffffbf", "#313695", "#abd9e9","#fdae61", "#4575b4","#a50026","#addd8e","#bcbddc", "#fee090", "#dd3497", "#ffffbf", "#313695" ))
+
+#species comparison
+
+precipitated_unprecipitated_samples <-cvn1_stringent_2025 %>%
+                                     filter(barcode %in% c("barcode2", "barcode3", "barcode5", "barcode6", "barcode8", "barcode9")) %>%
+  group_by(barcode, species.y) %>%
+   summarise(species_count = n()) %>%
+  mutate(prop =prop.table(species_count)) %>%
+  ungroup() %>%
+  #distinct(query.acc) %>%
+  arrange(desc(prop)) %>%
+  mutate(species = replace_na(species.y, "Unassigned")) %>%
+  mutate(species = factor(species, levels = unique(species.y)))
+
+
+precipitated_unprecipitated_samples %>% 
+  mutate(species = if_else(prop < 0.02, "Other", species)) %>% #AFTER FILTERING FOR UNIQUE TAXA ID, im now changing the other phyla proportion to 0.02, becuase a lot more will be represented on the graph if i left it at 0.002
+  ggplot(aes(x=barcode,y=prop, fill=species)) +
+    geom_col() +
+   # ylim(1,0) +
+  ylim(0,1) + #26.4.24 flipping this back to 0 to 1 becuase its more interpretable now
+    labs(x="barcode", y="Proportion") +
+        #title="Proportional distribution of bacterial phyla present per extraction method") +
+     theme(text = element_text(size=25),
+    axis.text.x = element_text(angle  = 90, vjust = 1.0, hjust = 1.0)) +
+  #scale_fill_brewer(palette = "RdYlBu", direction = 1) + 
+scale_fill_manual(values=c("#dd3497","#ffffbf", "#313695", "#abd9e9","#fdae61", "#4575b4","#a50026","#addd8e","#bcbddc", "#fee090", "#dd3497", "#ffffbf", "#313695" ))
+
+
+
+
+```
+
