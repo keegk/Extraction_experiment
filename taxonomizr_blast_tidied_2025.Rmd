@@ -260,7 +260,7 @@ taxa_table_distinct <- distinct(taxa_table_sorted) #filter this so i only have o
 
 And finally merging both taxonomy table and blast table using left join
 ```{r}
-merged_with_taxa_2025 <- left_join(x = combined_blast_sorted, y = taxa_table_distinct, by ="subject.tax.ids") 
+merged_with_taxa_2025 <- full_join(x = combined_blast_sorted, y = taxa_table_distinct, by ="subject.tax.ids") 
 #combined_blast[2644, ]
 #taxa1[2644, ]
 #taxa_merge <- combined_blast_sorted %>% group_by(subject.tax.ids) %>% select(subject.tax.ids) %>% left_join(taxa_table_distinct, by ="subject.tax.ids") %>% na.omit()
@@ -270,8 +270,9 @@ merged_with_taxa_2025 <- left_join(x = combined_blast_sorted, y = taxa_table_dis
 #nrow(merged_with_taxa_distinct)
 #view(merged_with_taxa)
 
-merged_with_taxa_2025 <- save(merged_with_taxa_2025, file = "merged_with_taxa_2025")
-load("merged_with_taxa_2025") #this was saved with 2025 written after it but the actual file name loads in without the 2025 bit after it just FYI.
+merged_with_taxa_2025_distinct <- distinct(merged_with_taxa_2025)
+merged_with_taxa_2025_distinct <- save(merged_with_taxa_2025_distinct, file = "merged_with_taxa_2025_distinct")
+load("merged_with_taxa_2025_distinct") #this was saved with 2025 written after it but the actual file name loads in without the 2025 bit after it just FYI.
 
 ```
 
