@@ -18,8 +18,9 @@ library(scales) #for the percentage function below
 sequencing_summary <- read_delim ("C:/Users/keegk/OneDrive - moredungroup/Karen Keegan/Nanopore/SQKRBK004/Extraction_experiment_run_22.2.23/Rebasecalling/Rebasecalled_trimmed_super_accuracy/barcode_1/barcode_1_sequencing_summary.txt")
 
 
-extexp2025_barcode1_remove_reads <- sequencing_summary %>%
-                      filter(!barcode_arrangement == "barcode01") %>%
+extexp2025_barcode1_remove_reads <- sequencing_summary %>% 
+                      filter(!barcode_arrangement == "barcode01") %>% #no reads less than 60 assigned barcode1
+                      
                       select(read_id) #this is isolating the reads that are on the wrong barcode, so I can use this read Id list to remove these reads in the blast text files (blast text files are assigned taxonomy in the notebook "taxonomizr_blast_tidied_2025.Rmd")
 
 extexp2025_barcode1_remove_reads <- save(extexp2025_barcode1_remove_reads, file = "extexp2025_barcode1_remove_reads")
