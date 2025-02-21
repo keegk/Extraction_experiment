@@ -240,7 +240,7 @@ We need to remove the decimal points and NA values from the column in taxa
 ```{r}
 taxa1$subject.tax.ids <- str_extract(taxa1$subject.tax.ids, "\\d+")
 taxa1
-nrow(taxa1) #42965
+nrow(taxa1) 
 View(taxa1)
 
 #to note, i quickly cross referenced a handful of these subject tax ids by looking them up on ncbi taxonomy databse to confirm that the matches of the class names to a subject tax id are correct. All matched.
