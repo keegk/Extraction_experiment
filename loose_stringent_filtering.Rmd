@@ -3,7 +3,7 @@ title: "Loose and stringent filtering for extraction experiment"
 output: html_notebook
 ---
 
-I am taking the taxonomy file generated from taxonomizr_blast_tidied.Rmd and starting with that file for all subsequent work:
+I am taking the taxonomy file generated from taxonomizr_blast_tidied_2025.Rmd and starting with that file for all subsequent work:
 
 ```{r setup}
 library(tidyverse)
@@ -11,14 +11,13 @@ library(stringr)
 ```
 
 ```{r}
-load("merged_with_taxa_distinct2025") #this was saved with 2025 written after it in the notebook taxonomizr_blast_tidied_2025, but the actual file name loads in without the 2025 bit after it just FYI.
-
+load("merged_with_taxa_2025") #originally created and saved in the R notebook that preceeds this one, "taxonomizr_blast_tidied_2025.Rmd"
 ```
 
 Loose filtering:
 
 ```{r}
-loose_ext_exp_2025 <- merged_with_taxa_distinct %>%
+loose_ext_exp_2025 <- merged_with_taxa_2025 %>%
                
                 mutate(proportional_gap_number = gaps/alignment.length) %>%# 7.11.24 adding this as i think gaps set at less than 5 is too harsh for longer reads 
                 mutate(proportional_mismatch_number = mismatches/alignment.length) %>% # 7.11.24 adding this as i think gaps set at less than 5 is too harsh for longer reads 
@@ -52,7 +51,7 @@ load("loose_ext_exp_2025")
 Stringent filtering:
 
 ```{r}
-stringent_ext_exp_2025 <- merged_with_taxa_distinct  %>%
+stringent_ext_exp_2025 <- merged_with_taxa_2025  %>%
                 
                 mutate(proportional_gap_number = gaps/alignment.length) %>%# 7.11.24 adding this as i think gaps set at less than 5 is too harsh for longer reads 
                 mutate(proportional_mismatch_number = mismatches/alignment.length) %>% # 7.11.24 adding this as i think gaps set at less than 5 is too harsh for longer reads 
