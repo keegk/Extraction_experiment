@@ -55,7 +55,9 @@ Done using parsefilter_blasttable.R run in parse_into_R.sh script.
 **Step 6**: Filter out any potential incorrect barcodes and add fully taxonomy to reads
 
 In the notebook "taxonomizr_blast_tidied_2025.Rmd", each barcodes parsed blast text file is loaded into R. For each barcode, any reads detected in that barcodes summary seq file (see Step 1.1 above) that were assigned to the wrong barcode are filtered out of the blast text file. The seven blast text files (one per extraction method) are then merged into a final dataset (combined_blast) and using the Taxonomizr package
-v 0.10.6, the reads in combined_blast are assigned full taxonomy classification (from superkingdom to species) based on the subject taxonomic ID each read aligned to. Dataframe with all this information is called merged_with_taxa_2025.
+v 0.10.6, the reads in combined_blast are assigned full taxonomy classification (from superkingdom to species) based on the subject taxonomic ID each read aligned to. Dataframe with all this information is called merged_with_taxa_2025_distinct. 
+
+**21/02/2025** - the merge step should be full_join not left_join - ive updated the r notebook but its not visible for me to committ and push to github 
 
 **Step 7**: Further filtering of blast reads in R
 
