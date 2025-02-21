@@ -207,7 +207,8 @@ nrow(combined_blast)
 #View(combined_blast_distinct)
 #combined_blast[11434, ]# ok so both of these row numbers have two taxi ids assigned to them. This must be an inherent error in ncbi assignment giving the same species multiple tax ids? to correct this, maybe i use str_split to just take the first entry?
 #combined_blast$subject.tax.ids<- str_extract(combined_blast$subject.tax.ids, "\\d+") # the "\\d+" is a regex (regular expression) that means: \d a shorthand character class, which matches all numbers; it is the same as [0-9] and + is plus one or more of the expression. If i had this in brackets "(\\d+))" it would return all numeric values present but without the brackets, just returns one value
-
+#combined_blast <- save(combined_blast, file = "combined_blast")
+#load("combined_blast")
 #combined_blast[11434, ]
 ```
 
@@ -229,8 +230,8 @@ taxa<-getTaxonomy(taxaID,sqlFile = "nameNode.sqlite", sep )
  converting row names to column using rownames_to_column:
 ```{r}
 taxa <- data.frame(taxa)
-taxa <- save(taxa, file = "taxa")
-load("taxa") # when we use add taxonomy, the dataframe of this has subject tax ids from our blast file as a column (properly turned into a column with correct name in the line below this) and all the names only (not taxa ids) of each phylogenetic class associated with the subject tax id
+#taxa <- save(taxa, file = "taxa")
+#load("taxa") # when we use add taxonomy, the dataframe of this has subject tax ids from our blast file as a column (properly turned into a column with correct name in the line below this) and all the names only (not taxa ids) of each phylogenetic class associated with the subject tax id
 taxa1<- tibble::rownames_to_column(taxa, var = "subject.tax.ids")
 taxa1
 ```
