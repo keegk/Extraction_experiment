@@ -55,9 +55,9 @@ Done using parsefilter_blasttable.R run in parse_into_R.sh script.
 **Step 6**: Filter out any potential incorrect barcodes and add fully taxonomy to reads
 
 In the notebook "taxonomizr_blast_tidied_2025.Rmd", each barcodes parsed blast text file is loaded into R. For each barcode, any reads detected in that barcodes summary seq file (see Step 1.1 above) that were assigned to the wrong barcode are filtered out of the blast text file. The seven blast text files (one per extraction method) are then merged into a final dataset (combined_blast) and using the Taxonomizr package
-v 0.10.6, the reads in combined_blast are assigned full taxonomy classification (from superkingdom to species) based on the subject taxonomic ID each read aligned to. Dataframe with all this information is called merged_with_taxa_2025_distinct. 
+v 0.10.6, the reads in combined_blast are assigned full taxonomy classification (from superkingdom to species) based on the subject taxonomic ID each read aligned to. This uses full_join as when we previously used left join, we were left with NA's for some of the taxonomizr fields. This happened because taxonomizr info was only being assigned to one record of a read and if there are multiple rows with the same read ID, only the first has taxonomizr info added and the rest are left as NA's. After merging we run distinct code on the merged file - this only filters out rows that are exactly the same - it doesn't necessarilt filter out multiple alignments of the same read, because the alignments may be slightly different for each of the entries, therefore the rows arent identical and they aren't filtered out. Later, in step 7, we filter out multiple records of a single read based on the alignment length and other variables. Final saved dataframe with all this information is called merged_with_taxa_2025_distinct. 
 
-**21/02/2025** - the merge step should be full_join not left_join - ive updated the r notebook but its not visible for me to committ and push to github 
+
 
 **Step 7**: Further filtering of blast reads in R
 
