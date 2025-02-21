@@ -282,7 +282,7 @@ stringent_ext_exp_2025 %>%
   group_by(phylum, extraction.method) %>%
   summarise(phylum_count = n()) %>%
   arrange(desc(phylum_count)) %>%
-  top_n(10, phylum_count) %>%
+  #top_n(10, phylum_count) %>% #removing this as i actually want the full list of phyla in the figure
 ggplot(aes(x= factor(extraction.method, level = level_order) , y = phylum, fill = log10(phylum_count))) +
   geom_tile() +
   theme(text = element_text(size=25),
@@ -291,3 +291,48 @@ ggplot(aes(x= factor(extraction.method, level = level_order) , y = phylum, fill 
   labs(x="DNA extraction method", y="Bacterial phyla")
         #title="Heat map of bacterial phyla present in the core dataset")
 ```
+
+**stringent filtering - heatmap of bacteria genera**
+
+```{r fig.align="centre", fig.width = 15, fig.height = 18, dpi=300}
+library(ggplot2)
+packageVersion("ggplot2")
+library("RColorBrewer") 
+packageVersion("RColorBrewer")
+
+
+level_order <- c('FAST DNA', 'MagMAX', 'Three peaks', 'PC','UCP','MagAttract', 'Genomic-tip') #so that the extraction  method order is the same in the plots as it is in the manuscript
+
+stringent_ext_exp_2025 %>%
+  filter(superkingdom == "Bacteria") %>%
+  group_by(genus, extraction.method) %>%
+  summarise(genus_count = n()) %>%
+  arrange(desc(genus_count)) %>%
+  top_n(10, genus_count) %>%
+ggplot(aes(x= factor(extraction.method, level = level_order) , y = genus, fill = log10(genus_count))) +
+  geom_tile() +
+  theme(text = element_text(size=25),
+    axis.text.x = element_text(angle  = 90, vjust = 1.0, hjust = 1.0)) +
+  scale_fill_distiller(palette = 'YlOrRd', direction = 1) +
+  labs(x="DNA extraction method", y="Bacterial phyla")
+        #title="Heat map of bacterial phyla present in the core dataset")
+```
+
+How many unique bacterial phyla are present per extraction method?
+
+```{r}
+
+bacterial_phyla_per_method <- stringent_ext_exp_2025 %>% 
+  filter(superkingdom == "Bacteria") %>%
+ group_by(extraction.method) %>%
+  distinct(phylum) %>%
+  summarise(phylum_count = n()) 
+
+bacterial_spp_per_method <- stringent_ext_exp_2025 %>% 
+  filter(superkingdom == "Bacteria") %>%
+ group_by(extraction.method) %>%
+  distinct(species) %>%
+  summarise(species_count = n())
+```
+
+
